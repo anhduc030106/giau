@@ -1,30 +1,25 @@
 /**
  * TÂM GIAO (SoulEcho) - Core Client Script
- * Hỗ trợ kết nối REST API FastAPI (khi server chạy) và Fallback thông minh chạy độc lập trên trình duyệt.
+ * Quy trình: Bắt buộc Đăng Ký / Đăng Nhập -> Khảo Sát Bắt Buộc -> Mở Khóa Dashboard -> Đặt Lịch Chuyên Gia Có Phí
  */
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
-// Trạng thái người dùng hiện tại
-let currentUser = {
-  id: 99,
-  username: "user_test",
-  displayName: "Bạn",
+// Quản lý trạng thái người dùng & phiên đăng nhập
+let currentUser = JSON.parse(localStorage.getItem("tamgiao_auth_user") || "null") || {
+  id: null,
+  username: "",
+  displayName: "",
+  email: "",
   isAnonymous: true,
-  alias: "Mầm Nhỏ #204",
+  alias: "Mầm Nhỏ",
   avatar: "🌱",
-  survey: {
-    ageBracket: "18-22",
-    lifeStage: "Sinh viên",
-    primaryIssues: ["Áp lực học tập", "Cô đơn / Khó hòa nhập"],
-    goals: ["Tìm một người biết lắng nghe", "Tìm bạn cùng học"],
-    preferredFormat: "both",
-    storySummary: "Mình là sinh viên năm nhất đang cảm thấy rất bỡ ngỡ và áp lực trước kỳ thi sắp tới.",
-    urgencyLevel: 2
-  }
+  isLoggedIn: false,
+  hasCompletedSurvey: false,
+  survey: null
 };
 
-// Dữ liệu mẫu người dùng ứng viên
+// Dữ liệu ứng viên mẫu để thuật toán ghép đôi
 let candidateUsers = [
   {
     userId: 1,
@@ -98,7 +93,7 @@ let candidateUsers = [
   }
 ];
 
-// Dữ liệu mẫu nhóm gợi ý
+// Dữ liệu nhóm mẫu
 let candidateGroups = [
   {
     id: 1,
@@ -167,7 +162,7 @@ let candidateGroups = [
   }
 ];
 
-// Dữ liệu chuyên gia
+// Dữ liệu Chuyên gia có thu phí rõ ràng
 let expertList = [
   {
     id: 1,
@@ -179,7 +174,10 @@ let expertList = [
     experience: "8 năm kinh nghiệm",
     time: "Thứ 2, 4, 6 (18:30 - 21:00)",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
-    org: "Trung tâm Tham vấn Tâm lý Sư Phạm"
+    org: "Trung tâm Tham vấn Tâm lý Sư Phạm",
+    feePerSession: 350000,
+    studentFee: 190000,
+    sessionDuration: "60 phút"
   },
   {
     id: 2,
@@ -191,7 +189,10 @@ let expertList = [
     experience: "12 năm kinh nghiệm",
     time: "Thứ 3, 5, 7 (19:00 - 21:30)",
     avatar: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80",
-    org: "Viện Sức khỏe Tinh thần & Hành vi"
+    org: "Viện Sức khỏe Tinh thần & Hành vi",
+    feePerSession: 480000,
+    studentFee: 290000,
+    sessionDuration: "60 phút"
   },
   {
     id: 3,
@@ -203,23 +204,26 @@ let expertList = [
     experience: "6 năm kinh nghiệm",
     time: "Thứ 7, CN (09:00 - 16:00)",
     avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-    org: "Mạng lưới Career & Mental Health VN"
+    org: "Mạng lưới Career & Mental Health VN",
+    feePerSession: 300000,
+    studentFee: 180000,
+    sessionDuration: "45 phút"
   }
 ];
 
-// Lịch sử tin nhắn của các phòng chat
+// Lịch sử chat
 let chatConversations = {
   1: [
     { sender: "partner", name: "Mầm Nhỏ #142", text: "Chào bạn, mình thấy hệ thống ghép hai đứa mình vì cùng là sinh viên năm nhất đang chịu áp lực học tập...", time: "10:15" },
-    { sender: "me", name: "Bạn", text: "Chào bạn nhé! Đúng rồi, đợt này trường mình thi liên miên, nhiều đêm mình mất ngủ vì sợ nợ môn.", time: "10:17" },
-    { sender: "partner", name: "Mầm Nhỏ #142", text: "Mình cũng y hệt luôn 😢 Nhiều lúc thấy bạn bè xung quanh ai cũng giỏi giang, mình cứ có cảm giác mình là người kém cỏi nhất lớp.", time: "10:18" }
+    { sender: "me", name: "Bạn", text: "Chào bạn nhé! Đợt này trường mình thi liên miên, nhiều đêm mình mất ngủ vì sợ nợ môn.", time: "10:17" },
+    { sender: "partner", name: "Mầm Nhỏ #142", text: "Mình cũng y hệt luôn 😢 Nhiều lúc thấy bạn bè xung quanh ai cũng giỏi giang, mình cứ tự ti mãi.", time: "10:18" }
   ],
   2: [
     { sender: "partner", name: "Đom Đóm #89", text: "Chào bạn, hôm nay công việc của bạn có quá tải không?", time: "Hôm qua" }
   ],
   101: [
-    { sender: "partner", name: "Điều Phối Viên Tâm Giao", text: "Chào mừng các bạn đến với Trạm Trú Ẩn #1 (Áp lực học tập năm nhất). Phòng chat này có tối đa 5 thành viên, mọi chia sẻ đều được giữ kín và tôn trọng tuyệt đối.", time: "Hôm qua" },
-    { sender: "partner", name: "Mầm Nhỏ #142", text: "Chào cả nhà ạ, em là sinh viên năm nhất Bách Khoa.", time: "09:30" }
+    { sender: "partner", name: "Điều Phối Viên Tâm Giao", text: "Chào mừng các bạn đến với Trạm Trú Ẩn #1 (Áp lực học tập năm nhất). Phòng chat này có tối đa 5 thành viên, mọi chia sẻ đều được giữ kín.", time: "Hôm qua" },
+    { sender: "partner", name: "Mầm Nhỏ #142", text: "Chào cả nhà ạ!", time: "09:30" }
   ]
 };
 
@@ -227,48 +231,337 @@ let currentActiveChatId = 1;
 
 // ================= KHỞI TẠO ỨNG DỤNG =================
 document.addEventListener("DOMContentLoaded", () => {
+  checkAuthAndSurveyGate();
   renderUserRecommendations(candidateUsers);
   renderGroupRecommendations(candidateGroups);
   renderExperts(expertList);
   renderChatRoomList();
   renderChatMessages(currentActiveChatId);
   renderJournalHistory();
-  tryFetchBackendData();
 });
 
-// Thử gọi FastAPI backend nếu đang chạy
-async function tryFetchBackendData() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/health`, { signal: AbortSignal.timeout(1500) });
-    if (res.ok) {
-      console.log("✅ Đã kết nối thành công với Backend FastAPI (http://localhost:8000)");
-      const usersRes = await fetch(`${API_BASE_URL}/recommendations/users/${currentUser.id}`);
-      if (usersRes.ok) {
-        const data = await usersRes.json();
-        if (data && data.length > 0) {
-          candidateUsers = data;
-          renderUserRecommendations(candidateUsers);
-        }
-      }
+// ================= LUỒNG BẮT BUỘC: AUTH GATE & MANDATORY SURVEY =================
+function checkAuthAndSurveyGate() {
+  const authGate = document.getElementById("authGate");
+  
+  if (!currentUser.isLoggedIn) {
+    authGate.style.display = "flex";
+  } else {
+    authGate.style.display = "none";
+    updateNavUserBadge();
+
+    if (!currentUser.hasCompletedSurvey) {
+      openSurveyModal(true);
     }
-  } catch (err) {
-    console.log("ℹ️ Đang chạy ở chế độ Client-Side thông minh (Không cần backend vẫn hoạt động 100%)");
   }
 }
 
-// ================= ĐIỀU HƯỚNG TABS/VIEWS =================
-function switchView(viewName) {
-  const views = ["discover", "groups", "chat", "wellness", "experts"];
-  views.forEach(v => {
-    const el = document.getElementById(`view-${v}`);
-    const tab = document.getElementById(`tab-${v}`);
-    if (el) el.style.display = (v === viewName) ? "block" : "none";
-    if (tab) tab.classList.toggle("active", v === viewName);
-  });
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function switchAuthTab(tab) {
+  const tabReg = document.getElementById("tabAuthRegister");
+  const tabLog = document.getElementById("tabAuthLogin");
+  const formReg = document.getElementById("formRegister");
+  const formLog = document.getElementById("formLogin");
+
+  if (tab === 'register') {
+    tabReg.classList.add("active");
+    tabLog.classList.remove("active");
+    formReg.style.display = "block";
+    formLog.style.display = "none";
+  } else {
+    tabLog.classList.add("active");
+    tabReg.classList.remove("active");
+    formLog.style.display = "block";
+    formReg.style.display = "none";
+  }
 }
 
-// ================= HIỂN THỊ ĐỀ XUẤT NGƯỜI DÙNG 1-1 =================
+async function handleRegister(e) {
+  e.preventDefault();
+  const username = document.getElementById("regUsername").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPassword").value.trim();
+  const displayName = document.getElementById("regDisplayName").value.trim() || username;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        display_name: displayName,
+        is_anonymous: true
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        displayName: data.display_name,
+        alias: data.anonymous_alias,
+        isAnonymous: true,
+        isLoggedIn: true,
+        hasCompletedSurvey: false,
+        survey: null
+      };
+    } else {
+      throw new Error("Local fallback");
+    }
+  } catch (err) {
+    const randNum = Math.floor(Math.random() * 900) + 100;
+    currentUser = {
+      id: Date.now(),
+      username: username,
+      email: email,
+      displayName: displayName,
+      alias: `Mầm Nhỏ #${randNum}`,
+      isAnonymous: true,
+      isLoggedIn: true,
+      hasCompletedSurvey: false,
+      survey: null
+    };
+  }
+
+  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  document.getElementById("authGate").style.display = "none";
+  updateNavUserBadge();
+  openSurveyModal(true);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        displayName: data.display_name,
+        alias: data.anonymous_alias,
+        isAnonymous: data.is_anonymous,
+        isLoggedIn: true,
+        hasCompletedSurvey: data.has_completed_survey,
+        survey: null
+      };
+    } else {
+      throw new Error("Local fallback");
+    }
+  } catch (err) {
+    const saved = JSON.parse(localStorage.getItem("tamgiao_auth_user") || "null");
+    if (saved && saved.username === username) {
+      currentUser = saved;
+      currentUser.isLoggedIn = true;
+    } else {
+      const randNum = Math.floor(Math.random() * 900) + 100;
+      currentUser = {
+        id: Date.now(),
+        username: username,
+        email: `${username}@tamgiao.vn`,
+        displayName: username,
+        alias: `Mầm Nhỏ #${randNum}`,
+        isAnonymous: true,
+        isLoggedIn: true,
+        hasCompletedSurvey: false,
+        survey: null
+      };
+    }
+  }
+
+  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  document.getElementById("authGate").style.display = "none";
+  updateNavUserBadge();
+
+  if (!currentUser.hasCompletedSurvey) {
+    openSurveyModal(true);
+  } else {
+    alert(`Chào mừng bạn quay trở lại, ${currentUser.alias}!`);
+  }
+}
+
+function handleLogout() {
+  if (confirm("Bạn có chắc chắn muốn đăng xuất khỏi Tâm Giao không?")) {
+    currentUser.isLoggedIn = false;
+    localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+    document.getElementById("authGate").style.display = "flex";
+  }
+}
+
+function updateNavUserBadge() {
+  const badgeName = document.getElementById("navUserName");
+  const badgeMode = document.getElementById("navUserMode");
+  if (badgeName) {
+    badgeName.innerText = currentUser.isAnonymous ? currentUser.alias : currentUser.displayName;
+  }
+  if (badgeMode) {
+    badgeMode.innerText = currentUser.isAnonymous ? "Chế độ Ẩn danh (Bảo mật)" : "Chế độ Công khai";
+    badgeMode.style.color = currentUser.isAnonymous ? "#2e7d5b" : "#6c5ce7";
+  }
+}
+
+// ================= MODAL KHẢO SÁT =================
+let currentSurveyStep = 1;
+let isSurveyMandatory = false;
+
+function openSurveyModal(mandatory = false) {
+  isSurveyMandatory = mandatory;
+  currentSurveyStep = 1;
+  updateSurveyStepUI();
+
+  const closeBtn = document.getElementById("surveyCloseBtn");
+  if (closeBtn) {
+    closeBtn.style.display = mandatory ? "none" : "block";
+  }
+
+  document.getElementById("surveyModal").classList.add("active");
+}
+
+function closeSurveyModal() {
+  if (isSurveyMandatory && !currentUser.hasCompletedSurvey) {
+    alert("Vui lòng hoàn thành khảo sát 4 bước để hệ thống phân tích và kết nối bạn với những người bạn cùng hoàn cảnh nhé!");
+    return;
+  }
+  document.getElementById("surveyModal").classList.remove("active");
+}
+
+function nextSurveyStep(step) {
+  currentSurveyStep = step;
+  updateSurveyStepUI();
+}
+
+function prevSurveyStep(step) {
+  currentSurveyStep = step;
+  updateSurveyStepUI();
+}
+
+function updateSurveyStepUI() {
+  for (let i = 1; i <= 4; i++) {
+    const sstep = document.getElementById(`sstep-${i}`);
+    const sbar = document.getElementById(`sbar-${i}`);
+    if (sstep) sstep.classList.toggle("active", i === currentSurveyStep);
+    if (sbar) sbar.classList.toggle("active", i <= currentSurveyStep);
+  }
+}
+
+function selectSingleOpt(btn, groupType) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+function toggleMultiOpt(btn) {
+  btn.classList.toggle("selected");
+}
+
+function generateNewAlias() {
+  const adjs = ["Mầm", "Mây", "Đom Đóm", "Gió", "Cỏ May", "Sao Băng", "Ánh Nắng", "Biển Xanh", "Hạt Mưa"];
+  const nouns = ["Nhỏ", "Trắng", "Hiền", "Thì Thầm", "Ấm Áp", "Lặng Lẽ", "Bình Yên", "Vươn Lên"];
+  const randNum = Math.floor(Math.random() * 900) + 100;
+  const newAlias = `${adjs[Math.floor(Math.random() * adjs.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} #${randNum}`;
+  document.getElementById("aliasInput").value = newAlias;
+}
+
+async function completeSurvey() {
+  const selectedAge = document.querySelector("#optAge .option-btn.selected")?.innerText || "18-22";
+  const selectedStage = document.querySelector("#optStage .option-btn.selected")?.innerText || "Sinh viên";
+  
+  const selectedIssues = [];
+  document.querySelectorAll("#optIssues .option-btn.selected").forEach(b => {
+    selectedIssues.push(b.innerText.replace(/^[^\s]+\s/, ''));
+  });
+
+  const selectedGoals = [];
+  document.querySelectorAll("#optGoals .option-btn.selected").forEach(b => {
+    selectedGoals.push(b.innerText.replace(/^[^\s]+\s/, ''));
+  });
+
+  const story = document.getElementById("surveyStoryInput").value.trim();
+  const alias = document.getElementById("aliasInput").value.trim() || "Mầm Nhỏ";
+
+  currentUser.alias = alias;
+  currentUser.hasCompletedSurvey = true;
+  currentUser.survey = {
+    ageBracket: selectedAge,
+    lifeStage: selectedStage,
+    primaryIssues: selectedIssues.length ? selectedIssues : ["Áp lực học tập"],
+    goals: selectedGoals,
+    storySummary: story,
+    preferredFormat: "both"
+  };
+
+  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+
+  if (currentUser.id) {
+    try {
+      fetch(`${API_BASE_URL}/survey/${currentUser.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          age_bracket: selectedAge,
+          life_stage: selectedStage,
+          primary_issues: currentUser.survey.primaryIssues,
+          goals: selectedGoals,
+          preferred_format: "both",
+          story_summary: story,
+          urgency_level: 2
+        })
+      });
+    } catch(e) {}
+  }
+
+  updateNavUserBadge();
+  document.getElementById("heroTitle").innerText = `Chào ${alias}, Trạm Lắng Nghe đã kết nối vì bạn!`;
+  document.getElementById("heroSubtitle").innerText = `Hệ thống đã phân tích hồ sơ: Bạn đang trăn trở về [${currentUser.survey.primaryIssues.join(", ")}]. Thuật toán đã tối ưu danh sách người bạn đồng cảm và nhóm nhỏ phù hợp nhất!`;
+
+  isSurveyMandatory = false;
+  document.getElementById("surveyModal").classList.remove("active");
+
+  recalculateMatchingScores(currentUser.survey.primaryIssues, selectedStage);
+
+  alert(`🎉 Chúc mừng ${alias}! Khảo sát hoàn tất. Bạn đã chính thức mở khóa toàn bộ hệ sinh thái kết nối và chữa lành.`);
+}
+
+function recalculateMatchingScores(userIssues, userStage) {
+  candidateUsers.forEach(u => {
+    let overlap = 0;
+    userIssues.forEach(ui => {
+      if (u.primaryIssues.some(pi => pi.toLowerCase().includes(ui.toLowerCase()) || ui.toLowerCase().includes(pi.toLowerCase()))) {
+        overlap += 1;
+      }
+    });
+    const stageMatch = u.lifeStage.toLowerCase().includes(userStage.toLowerCase()) ? 20 : 10;
+    const newScore = Math.min(98, Math.max(62, 60 + (overlap * 12) + stageMatch));
+    u.similarityScore = newScore;
+  });
+
+  candidateUsers.sort((a, b) => b.similarityScore - a.similarityScore);
+  renderUserRecommendations(candidateUsers);
+
+  candidateGroups.forEach(g => {
+    let match = 0;
+    userIssues.forEach(ui => {
+      if (g.category.toLowerCase().includes(ui.toLowerCase()) || g.tags.some(t => t.toLowerCase().includes(ui.toLowerCase()))) {
+        match += 15;
+      }
+    });
+    g.matchPercentage = Math.min(98, Math.max(65, 68 + match));
+  });
+  candidateGroups.sort((a, b) => b.matchPercentage - a.matchPercentage);
+  renderGroupRecommendations(candidateGroups);
+}
+
+// ================= HIỂN THỊ ĐỀ XUẤT =================
 function renderUserRecommendations(users) {
   const container = document.getElementById("userRecommendationsGrid");
   if (!container) return;
@@ -314,7 +607,6 @@ function renderUserRecommendations(users) {
   `).join("");
 }
 
-// ================= HIỂN THỊ ĐỀ XUẤT NHÓM =================
 function renderGroupRecommendations(groups) {
   const container = document.getElementById("groupRecommendationsGrid");
   if (!container) return;
@@ -359,7 +651,6 @@ function renderGroupRecommendations(groups) {
   `).join("");
 }
 
-// ================= BỘ LỌC ĐỀ XUẤT =================
 function filterDiscover(category, btn) {
   document.querySelectorAll("#view-discover .pill-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -387,7 +678,18 @@ function filterGroups(type, btn) {
   }
 }
 
-// ================= PHÒNG TRÒ CHUYỆN & TIN NHẮN =================
+function switchView(viewName) {
+  const views = ["discover", "groups", "chat", "wellness", "experts"];
+  views.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    const tab = document.getElementById(`tab-${v}`);
+    if (el) el.style.display = (v === viewName) ? "block" : "none";
+    if (tab) tab.classList.toggle("active", v === viewName);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ================= PHÒNG CHAT & TIN NHẮN =================
 function renderChatRoomList() {
   const listEl = document.getElementById("chatRoomList");
   if (!listEl) return;
@@ -526,7 +828,7 @@ function reportUser() {
   alert("Cảm ơn bạn. Báo cáo đã được gửi tới Ban Điều Phối Tâm Giao. Chúng mình sẽ kiểm duyệt tin nhắn trong phòng để đảm bảo an toàn tuyệt đối cho bạn.");
 }
 
-// ================= CUỘC GỌI THOẠI ẨN DANH (VOICE CALL) =================
+// ================= CUỘC GỌI THOẠI ẨN DANH =================
 let callInterval = null;
 let callSeconds = 0;
 
@@ -558,13 +860,7 @@ function endVoiceCall() {
 }
 
 function toggleMuteCall(btn) {
-  if (btn.innerText === "🎙️") {
-    btn.innerText = "🔇";
-    btn.title = "Đã tắt Micro";
-  } else {
-    btn.innerText = "🎙️";
-    btn.title = "Đã bật Micro";
-  }
+  btn.innerText = (btn.innerText === "🎙️") ? "🔇" : "🎙️";
 }
 
 // ================= BÀI TẬP THỞ 4-7-8 =================
@@ -648,10 +944,10 @@ function runBreathingCycle(circle, countEl, statusEl) {
   }, 4000);
 }
 
-// ================= TIẾP ĐẤT 5-4-3-2-1 (GROUNDING) =================
+// ================= TIẾP ĐẤT 5-4-3-2-1 =================
 const groundingSteps = [
-  { step: 1, title: "Bước 1: 5 đồ vật bạn có thể NHÌN THẤY", desc: "Hãy đưa mắt nhìn xung quanh và gọi tên 5 đồ vật (ví dụ: chiếc quạt, chiếc cốc, màn hình máy tính, bàn tay, ô cửa sổ...)." },
-  { step: 2, title: "Bước 2: 4 bề mặt bạn có thể CHẠM VÀO", desc: "Chạm tay vào mặt bàn, vuốt nhẹ áo quần bạn đang mặc, cảm nhận lòng bàn chân chạm sàn nhà, chạm vào mặt kính điện thoại." },
+  { step: 1, title: "Bước 1: 5 đồ vật bạn có thể NHÌN THẤY", desc: "Hãy đưa mắt nhìn xung quanh và gọi tên 5 đồ vật (chiếc quạt, chiếc cốc, màn hình máy tính, bàn tay, ô cửa sổ...)." },
+  { step: 2, title: "Bước 2: 4 bề mặt bạn có thể CHẠM VÀO", desc: "Chạm tay vào mặt bàn, vuốt nhẹ áo quần, cảm nhận lòng bàn chân chạm sàn nhà, chạm vào mặt kính điện thoại." },
   { step: 3, title: "Bước 3: 3 âm thanh bạn có thể NGHE THẤY", desc: "Lắng tai nghe tiếng quạt gió kêu, tiếng xe cộ phía xa, hay chính tiếng nhịp thở của bạn lúc này." },
   { step: 4, title: "Bước 4: 2 mùi hương bạn có thể NGỬI THẤY", desc: "Mùi sách vở, hương thơm thoang thoảng của căn phòng hoặc hít hà mùi chiếc áo sạch bạn đang mặc." },
   { step: 5, title: "Bước 5: 1 vị giác bạn cảm nhận được", desc: "Uống một ngụm nước mát và cảm nhận dòng nước lành chảy vào cơ thể. Bạn đang ở đây, an toàn và vững chãi." }
@@ -674,7 +970,7 @@ function updateGroundingUI() {
   document.getElementById("groundingDesc").innerText = item.desc;
 }
 
-// ================= HỘP THƯ TỰ HỦY (BURN NOTE) =================
+// ================= HỘP THƯ TỰ HỦY =================
 function burnNote() {
   const textarea = document.getElementById("burnInput");
   const text = textarea.value.trim();
@@ -691,7 +987,7 @@ function burnNote() {
   }, 1600);
 }
 
-// ================= SỔ TAY CẢM XÚC (JOURNALING) =================
+// ================= SỔ TAY CẢM XÚC =================
 let selectedMoodScore = 3;
 let journalList = JSON.parse(localStorage.getItem("tamgiao_journals") || "[]");
 
@@ -748,7 +1044,11 @@ function renderJournalHistory() {
   `).join("");
 }
 
-// ================= CHUYÊN GIA & ĐẶT LỊCH =================
+// ================= CHUYÊN GIA CÓ THU PHÍ & QUY TRÌNH ĐẶT LỊCH =================
+let currentBookingExpert = null;
+let bookingDurationMinutes = 60;
+let bookingCallFormat = "Video Call Riêng Tư (Bảo mật 100%)";
+
 function renderExperts(experts) {
   const container = document.getElementById("expertsGrid");
   if (!container) return;
@@ -758,7 +1058,7 @@ function renderExperts(experts) {
       <div>
         <div class="card-top">
           <div style="display: flex; gap: 0.75rem;">
-            <img src="${e.avatar}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+            <img src="${e.avatar}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover;">
             <div>
               <strong style="font-size: 1.05rem;">${e.name}</strong>
               <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">${e.title}</div>
@@ -770,11 +1070,20 @@ function renderExperts(experts) {
           </div>
         </div>
 
-        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem;">
+        <div style="margin: 0.6rem 0;">
+          <div class="fee-badge">
+            🏷️ ${e.feePerSession.toLocaleString('vi-VN')} đ / ${e.sessionDuration}
+          </div>
+          <span class="student-discount-tag" style="margin-left: 0.4rem;">
+            🎓 Trợ giá HSSV: ${e.studentFee.toLocaleString('vi-VN')} đ
+          </span>
+        </div>
+
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.35rem;">
           Chuyên môn: ${e.specialty}
         </div>
 
-        <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.45;">
+        <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.45;">
           ${e.bio}
         </p>
 
@@ -784,16 +1093,32 @@ function renderExperts(experts) {
       </div>
 
       <div class="card-actions">
-        <button class="btn-primary" onclick="openBookExpertModal('${e.name}')">
-          Đặt Lịch Tham Vấn
+        <button class="btn-primary" onclick="openBookExpertModal(${e.id})">
+          Đặt Lịch Tham Vấn Có Phí
         </button>
       </div>
     </div>
   `).join("");
 }
 
-function openBookExpertModal(expertName) {
-  document.getElementById("bookingExpertDesc").innerText = `Tham vấn bảo mật cùng ${expertName}`;
+function openBookExpertModal(expertId) {
+  const expert = expertList.find(e => e.id === expertId);
+  if (!expert) return;
+
+  currentBookingExpert = expert;
+  bookingDurationMinutes = 60;
+  bookingCallFormat = "Video Call Riêng Tư (Bảo mật 100%)";
+
+  document.getElementById("bookingExpertDesc").innerText = `Tham vấn bảo mật cùng ${expert.name} (${expert.title})`;
+  
+  document.getElementById("chkStudentDiscount").checked = false;
+  document.getElementById("pkg60").classList.add("selected");
+  document.getElementById("pkg45").classList.remove("selected");
+
+  const randCode = `TG-${Math.floor(Math.random() * 90000) + 10000}`;
+  document.getElementById("txtBookingRef").innerText = randCode;
+
+  updateBookingCost();
   document.getElementById("bookExpertModal").classList.add("active");
 }
 
@@ -801,10 +1126,83 @@ function closeBookExpertModal() {
   document.getElementById("bookExpertModal").classList.remove("active");
 }
 
-function confirmExpertBooking() {
-  const time = document.getElementById("bookingTimeSelect").value;
+function selectPackage(minutes, btn) {
+  bookingDurationMinutes = minutes;
+  document.querySelectorAll("#bookExpertModal .option-btn[id^='pkg']").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  updateBookingCost();
+}
+
+function selectCallFormat(format, btn) {
+  bookingCallFormat = format;
+  btn.parentElement.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+function updateBookingCost() {
+  if (!currentBookingExpert) return;
+
+  const isStudent = document.getElementById("chkStudentDiscount").checked;
+  const is45m = (bookingDurationMinutes === 45);
+
+  let originalFee = currentBookingExpert.feePerSession;
+  if (is45m) {
+    originalFee = Math.round(originalFee * 0.8 / 10000) * 10000;
+  }
+
+  let finalFee = originalFee;
+  let discount = 0;
+
+  if (isStudent) {
+    finalFee = currentBookingExpert.studentFee;
+    if (is45m) finalFee = Math.round(finalFee * 0.8 / 10000) * 10000;
+    discount = originalFee - finalFee;
+    document.getElementById("rowStudentDiscount").style.display = "flex";
+    document.getElementById("txtDiscountFee").innerText = `-${discount.toLocaleString('vi-VN')} VNĐ`;
+  } else {
+    document.getElementById("rowStudentDiscount").style.display = "none";
+  }
+
+  document.getElementById("txtOriginalFee").innerText = `${originalFee.toLocaleString('vi-VN')} VNĐ`;
+  document.getElementById("txtFinalFee").innerText = `${finalFee.toLocaleString('vi-VN')} VNĐ`;
+}
+
+async function confirmExpertBooking() {
+  if (!currentBookingExpert) return;
+
+  const selectedTime = document.getElementById("bookingTimeSelect").value;
+  const isStudent = document.getElementById("chkStudentDiscount").checked;
+  const bookingCode = document.getElementById("txtBookingRef").innerText;
+  const finalFeeText = document.getElementById("txtFinalFee").innerText;
+  const note = document.getElementById("bookingNote").value.trim();
+
+  try {
+    fetch(`${API_BASE_URL}/experts/book`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: currentUser.id || 1,
+        expert_id: currentBookingExpert.id,
+        selected_time: selectedTime,
+        service_package: `Tham vấn ${bookingDurationMinutes} phút`,
+        call_format: bookingCallFormat,
+        is_student: isStudent,
+        user_note: note
+      })
+    });
+  } catch(e) {}
+
   closeBookExpertModal();
-  alert(`Yêu cầu tham vấn vào khung giờ "${time}" đã được ghi nhận! Phòng tham vấn sẽ liên hệ qua thông báo bảo mật trong vòng 24h.`);
+
+  alert(
+    `🎉 ĐẶT LỊCH THAM VẤN THÀNH CÔNG!\n\n` +
+    `• Chuyên gia: ${currentBookingExpert.name}\n` +
+    `• Thời gian: ${selectedTime} (${bookingDurationMinutes} phút)\n` +
+    `• Hình thức: ${bookingCallFormat}\n` +
+    `• Tổng chi phí: ${finalFeeText}\n` +
+    `• Mã đặt chỗ: ${bookingCode}\n\n` +
+    `Vui lòng chuyển khoản giữ chỗ theo hướng dẫn với nội dung [${bookingCode}]. Link phòng tham vấn bảo mật sẽ được gửi qua thông báo trước giờ hẹn 30 phút.`
+  );
 }
 
 function openPartnerRegisterModal() {
@@ -825,136 +1223,11 @@ function submitPartnerRequest() {
   alert("Cảm ơn đơn vị của bạn! Ban Phát Triển Mạng Lưới Học Đường Tâm Giao sẽ gửi hồ sơ đối tác trong 48h.");
 }
 
-// ================= MODAL KHẢO SÁT ĐA BƯỚC =================
-let currentSurveyStep = 1;
-
-function openSurveyModal() {
-  currentSurveyStep = 1;
-  updateSurveyStepUI();
-  document.getElementById("surveyModal").classList.add("active");
-}
-
-function closeSurveyModal() {
-  document.getElementById("surveyModal").classList.remove("active");
-}
-
-function nextSurveyStep(step) {
-  currentSurveyStep = step;
-  updateSurveyStepUI();
-}
-
-function prevSurveyStep(step) {
-  currentSurveyStep = step;
-  updateSurveyStepUI();
-}
-
-function updateSurveyStepUI() {
-  for (let i = 1; i <= 4; i++) {
-    const sstep = document.getElementById(`sstep-${i}`);
-    const sbar = document.getElementById(`sbar-${i}`);
-    if (sstep) sstep.classList.toggle("active", i === currentSurveyStep);
-    if (sbar) sbar.classList.toggle("active", i <= currentSurveyStep);
-  }
-}
-
-function selectSingleOpt(btn, groupType) {
-  const parent = btn.parentElement;
-  parent.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
-  btn.classList.add("selected");
-}
-
-function toggleMultiOpt(btn) {
-  btn.classList.toggle("selected");
-}
-
-function generateNewAlias() {
-  const adjs = ["Mầm", "Mây", "Đom Đóm", "Gió", "Cỏ May", "Sao Băng", "Ánh Nắng", "Biển Xanh", "Hạt Mưa"];
-  const nouns = ["Nhỏ", "Trắng", "Hiền", "Thì Thầm", "Ấm Áp", "Lặng Lẽ", "Bình Yên", "Vươn Lên"];
-  const randNum = Math.floor(Math.random() * 900) + 100;
-  const newAlias = `${adjs[Math.floor(Math.random() * adjs.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]} #${randNum}`;
-  document.getElementById("aliasInput").value = newAlias;
-}
-
-function completeSurvey() {
-  const selectedAge = document.querySelector("#optAge .option-btn.selected")?.innerText || "18-22";
-  const selectedStage = document.querySelector("#optStage .option-btn.selected")?.innerText || "Sinh viên";
-  
-  const selectedIssues = [];
-  document.querySelectorAll("#optIssues .option-btn.selected").forEach(b => {
-    selectedIssues.push(b.innerText.replace(/^[^\s]+\s/, ''));
-  });
-
-  const selectedGoals = [];
-  document.querySelectorAll("#optGoals .option-btn.selected").forEach(b => {
-    selectedGoals.push(b.innerText.replace(/^[^\s]+\s/, ''));
-  });
-
-  const story = document.getElementById("surveyStoryInput").value.trim();
-  const alias = document.getElementById("aliasInput").value.trim() || "Mầm Nhỏ";
-
-  currentUser.alias = alias;
-  currentUser.survey = {
-    ageBracket: selectedAge,
-    lifeStage: selectedStage,
-    primaryIssues: selectedIssues.length ? selectedIssues : ["Áp lực học tập"],
-    goals: selectedGoals,
-    storySummary: story,
-    preferredFormat: "both"
-  };
-
-  document.getElementById("navUserName").innerText = alias;
-  document.getElementById("heroTitle").innerText = `Chào ${alias}, Trạm Lắng Nghe đã sẵn sàng vì bạn!`;
-  document.getElementById("heroSubtitle").innerText = `Thuật toán đã phân tích hồ sơ: Bạn đang trăn trở về [${selectedIssues.join(", ")}]. Dưới đây là những người bạn và nhóm nhỏ đồng điệu nhất!`;
-
-  closeSurveyModal();
-  recalculateMatchingScores(selectedIssues, selectedStage);
-
-  alert(`🎉 Khảo sát hoàn tất! Thuật toán đã tối ưu danh sách ghép đôi theo chủ đề: ${selectedIssues.join(", ")}.`);
-}
-
-function recalculateMatchingScores(userIssues, userStage) {
-  candidateUsers.forEach(u => {
-    let overlap = 0;
-    userIssues.forEach(ui => {
-      if (u.primaryIssues.some(pi => pi.toLowerCase().includes(ui.toLowerCase()) || ui.toLowerCase().includes(pi.toLowerCase()))) {
-        overlap += 1;
-      }
-    });
-    const stageMatch = u.lifeStage.toLowerCase().includes(userStage.toLowerCase()) ? 20 : 10;
-    const newScore = Math.min(98, Math.max(62, 60 + (overlap * 12) + stageMatch));
-    u.similarityScore = newScore;
-  });
-
-  candidateUsers.sort((a, b) => b.similarityScore - a.similarityScore);
-  renderUserRecommendations(candidateUsers);
-
-  candidateGroups.forEach(g => {
-    let match = 0;
-    userIssues.forEach(ui => {
-      if (g.category.toLowerCase().includes(ui.toLowerCase()) || g.tags.some(t => t.toLowerCase().includes(ui.toLowerCase()))) {
-        match += 15;
-      }
-    });
-    g.matchPercentage = Math.min(98, Math.max(65, 68 + match));
-  });
-  candidateGroups.sort((a, b) => b.matchPercentage - a.matchPercentage);
-  renderGroupRecommendations(candidateGroups);
-}
-
+// ================= CÁC MODAL KHÁC =================
 function toggleAnonymousMode() {
   currentUser.isAnonymous = !currentUser.isAnonymous;
-  const badgeName = document.getElementById("navUserName");
-  const badgeMode = document.getElementById("navUserMode");
-
-  if (currentUser.isAnonymous) {
-    badgeName.innerText = currentUser.alias;
-    badgeMode.innerText = "Chế độ Ẩn danh (Bảo mật)";
-    badgeMode.style.color = "#2e7d5b";
-  } else {
-    badgeName.innerText = currentUser.displayName;
-    badgeMode.innerText = "Chế độ Công khai";
-    badgeMode.style.color = "#6c5ce7";
-  }
+  updateNavUserBadge();
+  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
 }
 
 function openSOSModal() {
@@ -973,4 +1246,3 @@ function openConductModal(e) {
 function closeConductModal() {
   document.getElementById("conductModal").classList.remove("active");
 }
-

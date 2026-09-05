@@ -123,7 +123,7 @@ class JournalResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Expert Schemas
+# Expert & Appointment Schemas
 class ExpertResponse(BaseModel):
     id: int
     name: str
@@ -136,12 +136,34 @@ class ExpertResponse(BaseModel):
     available_time: str
     avatar_url: str
     organization: str
+    fee_per_session: int
+    student_fee: int
+    session_duration: str
 
     class Config:
         from_attributes = True
 
 class AppointmentCreate(BaseModel):
+    user_id: int
     expert_id: int
     selected_time: str
-    user_note: str = ""
+    service_package: Optional[str] = "Tham vấn Tiêu chuẩn"
+    call_format: Optional[str] = "Video Call Riêng Tư"
+    is_student: Optional[bool] = False
+    user_note: Optional[str] = ""
 
+class AppointmentResponse(BaseModel):
+    id: int
+    booking_code: str
+    expert_name: str
+    expert_title: str
+    selected_time: str
+    service_package: str
+    call_format: str
+    fee_amount: int
+    payment_status: str
+    payment_instructions: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

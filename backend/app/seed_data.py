@@ -131,7 +131,6 @@ def seed_database(db: Session):
 
     # 2. Khởi tạo danh sách Nhóm (Groups)
     sample_groups = [
-        # Nhóm nhỏ 2-5 người cùng hoàn cảnh
         {
             "name": "Trạm Trú Ẩn: Áp Lực Học Tập Năm Nhất",
             "description": "Nhóm nhỏ 2-5 bạn sinh viên năm nhất cùng giãi bày về cảm giác chới với trước giảng đường, thi cử và cách thích nghi.",
@@ -162,7 +161,6 @@ def seed_database(db: Session):
             "icon": "🕯️",
             "tags": json.dumps(["Áp lực gia đình", "Mâu thuẫn gia đình", "Tự ti"], ensure_ascii=False)
         },
-        # Nhóm cộng đồng mở rộng
         {
             "name": "Sinh Viên & Khủng Hoảng Tuổi 20",
             "description": "Cộng đồng chia sẻ các băn khoăn về định hướng nghề nghiệp, kỹ năng sống và cách duy trì sức khỏe tinh thần.",
@@ -208,7 +206,7 @@ def seed_database(db: Session):
         )
         db.add(g)
 
-    # 3. Khởi tạo danh sách Chuyên gia (Experts & Counselors)
+    # 3. Khởi tạo danh sách Chuyên gia (Experts) có biểu phí dịch vụ và trợ giá học đường
     sample_experts = [
         {
             "name": "ThS. Lê Hoàng Yến",
@@ -220,7 +218,10 @@ def seed_database(db: Session):
             "experience_years": 8,
             "available_time": "Thứ 2, 4, 6 (18:30 - 21:00)",
             "avatar_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
-            "organization": "Trung tâm Tham vấn Tâm lý Sư Phạm"
+            "organization": "Trung tâm Tham vấn Tâm lý Sư Phạm",
+            "fee_per_session": 350000,
+            "student_fee": 190000,
+            "session_duration": "60 phút"
         },
         {
             "name": "TS. Nguyễn Minh Triết",
@@ -232,19 +233,25 @@ def seed_database(db: Session):
             "experience_years": 12,
             "available_time": "Thứ 3, 5, 7 (19:00 - 21:30)",
             "avatar_url": "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80",
-            "organization": "Viện Sức khỏe Tinh thần & Hành vi"
+            "organization": "Viện Sức khỏe Tinh thần & Hành vi",
+            "fee_per_session": 480000,
+            "student_fee": 290000,
+            "session_duration": "60 phút"
         },
         {
             "name": "ThS. Đỗ Thu Trang",
             "title": "Chuyên gia Hướng nghiệp & Sức khỏe Tinh thần",
-            "specialty": "Burnout công sở, Rối loạn lo âu xã hội",
-            "bio": "Hỗ trợ các bạn trẻ mới ra trường vượt qua cảm giác hoang mang, tự ti năng lực (Imposter Syndrome) và xây dựng ranh giới lành mạnh trong công việc.",
+            "specialty": "Burnout công sở, Rối loạn lo âu xã hội (Imposter Syndrome)",
+            "bio": "Hỗ trợ các bạn trẻ mới ra trường vượt qua cảm giác hoang mang, tự ti năng lực và xây dựng ranh giới lành mạnh trong môi trường công việc.",
             "rating": 4.8,
             "reviews_count": 67,
             "experience_years": 6,
             "available_time": "Thứ 7, CN (09:00 - 16:00)",
             "avatar_url": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-            "organization": "Mạng lưới Career & Mental Health VN"
+            "organization": "Mạng lưới Career & Mental Health VN",
+            "fee_per_session": 300000,
+            "student_fee": 180000,
+            "session_duration": "45 phút"
         }
     ]
 
@@ -259,9 +266,11 @@ def seed_database(db: Session):
             experience_years=exp_item["experience_years"],
             available_time=exp_item["available_time"],
             avatar_url=exp_item["avatar_url"],
-            organization=exp_item["organization"]
+            organization=exp_item["organization"],
+            fee_per_session=exp_item["fee_per_session"],
+            student_fee=exp_item["student_fee"],
+            session_duration=exp_item["session_duration"]
         )
         db.add(e)
 
     db.commit()
-

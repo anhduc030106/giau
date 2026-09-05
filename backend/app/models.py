@@ -19,6 +19,7 @@ class User(Base):
     # Relationships
     survey = relationship("Survey", back_populates="user", uselist=False, cascade="all, delete-orphan")
     journals = relationship("JournalEntry", back_populates="user", cascade="all, delete-orphan")
+    appointments = relationship("Appointment", back_populates="user", cascade="all, delete-orphan")
 
 class Survey(Base):
     __tablename__ = "surveys"
@@ -32,7 +33,7 @@ class Survey(Base):
     preferred_format = Column(String(30), default="one_to_one") # one_to_one, small_group, both
     story_summary = Column(Text, default="")
     urgency_level = Column(Integer, default=1)   # 1: Nhẹ, 2: Vừa, 3: Cần người chia sẻ gấp
-    personality_style = Column(String(50), default="Lắng nghe") # Lắng nghe, Cởi mở, Sâu sắc, v.v.
+    personality_style = Column(String(50), default="Lắng nghe")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="survey")
@@ -109,4 +110,27 @@ class Expert(Base):
     available_time = Column(String(100), default="T2 - T6 (18:00 - 21:00)")
     avatar_url = Column(String(255), default="")
     organization = Column(String(200), default="Tổ chức Sức khỏe Tinh thần")
+    # Thu phí và thời lượng buổi tham vấn
+    fee_per_session = Column(Integer, default=350000) # Chi phí VND / buổi tiêu chuẩn
+    student_fee = Column(Integer, default=190000)     # Chi phí trợ giá cho học sinh / sinh viên
+    session_duration = Column(String(50), default="60 phút") # Thời lượng buổi tham vấn
 
+    appointments = relationship("Appointment", back_populates="expert", cascade="all, delete-orphan")
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_code = Column(String(50), unique=True, index=True) # VD: TG-83921
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    expert_id = Column(Integer, ForeignKey("experts.id"), nullable=False)
+    service_package = Column(String(100), default="Tham vấn Tâm lý Tiêu chuẩn")
+    call_format = Column(String(50), default="Video Call Riêng Tư") # Video Call / Voice Call
+    selected_time = Column(String(100), nullable=False)
+    fee_amount = Column(Integer, nullable=False) # Số tiền phải thanh toán VND
+    payment_status = Column(String(30), default="Chờ chuyển khoản / Giữ chỗ") # Chờ chuyển khoản, Đã thanh toán
+    user_note = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="appointments")
+    expert = relationship("Expert", back_populates="appointments")

@@ -5,12 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TÂM GIAO (SoulEcho) - Nền Tảng Kết Nối Thấu Cảm & Sức Khỏe Tinh Thần</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Lucide Icons or SVG icons support -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+  <!-- ================= AUTH GATE: MÀN HÌNH ĐĂNG KÝ / ĐĂNG NHẬP BẮT BUỘC ================= -->
+  <div class="auth-overlay" id="authGate">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo-badge">🌿</div>
+        <h2 style="color: var(--primary); margin-bottom: 0.25rem;">TÂM GIAO (SoulEcho)</h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">Không gian thấu cảm, lắng nghe và kết nối tri kỷ theo cùng hoàn cảnh</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabAuthRegister" onclick="switchAuthTab('register')">Đăng Ký Tài Khoản Mới</button>
+        <button class="auth-tab-btn" id="tabAuthLogin" onclick="switchAuthTab('login')">Đăng Nhập</button>
+      </div>
+
+      <!-- Form Đăng Ký -->
+      <form id="formRegister" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>Tên đăng nhập:</label>
+          <input type="text" id="regUsername" placeholder="Ví dụ: mam_nho, lan_gio..." required>
+        </div>
+        <div class="form-group">
+          <label>Email liên hệ:</label>
+          <input type="email" id="regEmail" placeholder="email@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu bảo mật:</label>
+          <input type="password" id="regPassword" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label>Tên hiển thị (hoặc để trống để dùng bí danh):</label>
+          <input type="text" id="regDisplayName" placeholder="Tên thường gọi của bạn...">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; justify-content: center; margin-top: 0.5rem;">
+          Tạo Tài Khoản & Tiếp Tục Làm Khảo Sát ➜
+        </button>
+        <p style="font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.75rem;">
+          🔒 Hệ thống cam kết không bao giờ tiết lộ danh tính thật hay số điện thoại của bạn.
+        </p>
+      </form>
+
+      <!-- Form Đăng Nhập -->
+      <form id="formLogin" style="display: none;" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Tên đăng nhập:</label>
+          <input type="text" id="loginUsername" placeholder="Nhập tên đăng nhập..." required>
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu:</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; justify-content: center; margin-top: 0.5rem;">
+          Đăng Nhập Vào Trạm Lắng Nghe ➜
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- ================= TOP NAVIGATION ================= -->
   <header class="navbar">
@@ -27,7 +83,7 @@
       <li><button class="nav-tab-btn" id="tab-groups" onclick="switchView('groups')">👥 Nhóm Đồng Cảnh</button></li>
       <li><button class="nav-tab-btn" id="tab-chat" onclick="switchView('chat')">💬 Trò Chuyện (1-1 / Nhóm)</button></li>
       <li><button class="nav-tab-btn" id="tab-wellness" onclick="switchView('wellness')">🧘 Trạm Chữa Lành</button></li>
-      <li><button class="nav-tab-btn" id="tab-experts" onclick="switchView('experts')">👨‍⚕️ Chuyên Gia & Học Đường</button></li>
+      <li><button class="nav-tab-btn" id="tab-experts" onclick="switchView('experts')">👨‍⚕️ Chuyên Gia (Có Thu Phí)</button></li>
     </ul>
 
     <div class="nav-actions">
@@ -44,6 +100,11 @@
           <div style="font-size: 0.7rem; color: #2e7d5b;" id="navUserMode">Chế độ Ẩn danh (Bảo mật)</div>
         </div>
       </div>
+
+      <!-- Nút Đăng Xuất -->
+      <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất khỏi tài khoản">
+        Đăng Xuất
+      </button>
     </div>
   </header>
 
@@ -57,8 +118,8 @@
         <p id="heroSubtitle">Hệ thống của Tâm Giao không ghép đôi ngẫu nhiên. Chúng mình lắng nghe câu chuyện của bạn để tìm những người bạn cùng hoàn cảnh, cùng tần số và cùng vượt qua giông bão.</p>
       </div>
       <div class="hero-buttons">
-        <button class="btn-primary" onclick="openSurveyModal()">
-          📝 Làm Khảo Sát Để Nhận Đề Xuất
+        <button class="btn-primary" onclick="openSurveyModal(false)">
+          📝 Cập Nhật Lại Khảo Sát Tâm Lý
         </button>
         <button class="btn-secondary" onclick="startQuickBreathing()">
           🌬️ Thở Thư Giãn 1 Phút
@@ -71,7 +132,7 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">✨ Người có thể bạn muốn kết nối</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Được đề xuất tự động dựa trên mức độ tương đồng về hoàn cảnh, độ tuổi và nỗi niềm trong khảo sát.</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Được đề xuất tự động dựa trên mức độ tương đồng về hoàn cảnh, độ tuổi và nỗi niềm trong khảo sát của bạn.</p>
         </div>
         <div class="filter-pills">
           <button class="pill-btn active" onclick="filterDiscover('all', this)">Tất cả</button>
@@ -121,7 +182,6 @@
 
         <!-- Khung Chat Chính -->
         <div class="chat-main">
-          <!-- Chat Header -->
           <div class="chat-header">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <div class="user-avatar-mini" id="currentChatAvatar">🌱</div>
@@ -140,18 +200,15 @@
             </div>
           </div>
 
-          <!-- Banner Cam Kết Quy Tắc Ứng Xử -->
           <div class="conduct-banner">
             <span>🛡️ <strong>Quy tắc ứng xử:</strong> Lắng nghe chân thành, không phán xét, không quấy rối và không ép buộc thông tin cá nhân.</span>
             <a href="#" style="color: inherit; text-decoration: underline;" onclick="openConductModal(event)">Xem quy ước</a>
           </div>
 
-          <!-- Tin nhắn cuộc trò chuyện -->
           <div class="chat-messages" id="chatMessagesContainer">
             <!-- Message Bubbles -->
           </div>
 
-          <!-- Thanh Gợi Ý Mở Lời (Icebreakers) -->
           <div class="icebreaker-bar">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Gợi ý mở lời:</span>
             <span class="icebreaker-chip" onclick="sendIcebreaker('Chào bạn, hôm nay của bạn có điều gì làm bạn cảm thấy mệt mỏi nhất không?')">"Hôm nay của bạn thế nào?"</span>
@@ -159,7 +216,6 @@
             <span class="icebreaker-chip" onclick="sendIcebreaker('Mình cũng đang gặp áp lực tương tự, bạn có muốn cùng chia sẻ không?')">"Mình cũng đang gặp áp lực này..."</span>
           </div>
 
-          <!-- Phản hồi Cử Chỉ Thấu Cảm & Nhập Tin Nhắn -->
           <div class="chat-input-bar">
             <button class="btn-secondary" style="padding: 0.55rem 0.75rem; font-size: 1.1rem;" onclick="sendReaction('🤗 Cái ôm ấm áp')" title="Gửi cái ôm thấu cảm">🤗</button>
             <button class="btn-secondary" style="padding: 0.55rem 0.75rem; font-size: 1.1rem;" onclick="sendReaction('❤️ Trái tim sẻ chia')" title="Thả tim ấm áp">❤️</button>
@@ -193,7 +249,7 @@
             <div class="breathing-status" id="breathingStatus">Nhấn nút bên dưới để bắt đầu nhịp thở</div>
           </div>
 
-          <button class="btn-primary" id="btnToggleBreath" onclick="toggleBreathingExercise()" style="margin-top: auto;">
+          <button class="btn-primary" id="btnToggleBreath" onclick="toggleBreathingExercise()" style="margin-top: auto; justify-content: center;">
             Bắt Đầu Bài Tập Thở
           </button>
         </div>
@@ -205,23 +261,23 @@
           
           <div id="groundingStepContent" style="background: #f8faf9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; min-height: 120px;">
             <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.4rem;" id="groundingTitle">Bước 1: 5 Đồ vật bạn có thể NHÌN THẤY</div>
-            <p style="font-size: 0.88rem;" id="groundingDesc">Hãy đưa mắt nhìn xung quanh và gọi tên trong đầu 5 đồ vật bạn thấy ngay lúc này (ví dụ: chiếc cốc, chiếc quạt, bức tranh...).</p>
+            <p style="font-size: 0.88rem;" id="groundingDesc">Hãy đưa mắt nhìn xung quanh và gọi tên trong đầu 5 đồ vật bạn thấy ngay lúc này.</p>
           </div>
 
           <div style="display: flex; gap: 0.5rem; margin-top: auto;">
             <button class="btn-secondary" onclick="prevGroundingStep()">Quay lại</button>
-            <button class="btn-primary" style="flex: 1;" onclick="nextGroundingStep()">Bước Tiếp Theo</button>
+            <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextGroundingStep()">Bước Tiếp Theo</button>
           </div>
         </div>
 
         <!-- Hộp thư xả cảm xúc tự hủy (Burn Note) -->
         <div class="wellness-card">
           <h3>🔥 Hộp Thư Xả Uất Ức (Burn Note)</h3>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem;">Viết ra tất cả những bực bội, buồn đau hay nỗi giận dữ đang đè nặng. Sau đó bấm nút để câu chữ tan biến thành mây khói.</p>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem;">Viết ra tất cả những bực bội, buồn đau hay nỗi giận dữ đang đè nặng rồi bấm nút để hóa giải.</p>
           
           <textarea class="burn-textarea" id="burnInput" placeholder="Viết mọi điều bạn muốn trút bỏ ở đây..."></textarea>
           
-          <button class="btn-secondary" style="border-color: #ff7675; color: #d63031; margin-top: auto;" onclick="burnNote()">
+          <button class="btn-secondary" style="border-color: #ff7675; color: #d63031; margin-top: auto; justify-content: center;" onclick="burnNote()">
             🔥 Hóa Giải & Làm Biến Mất Nỗi Buồn
           </button>
         </div>
@@ -260,12 +316,12 @@
       </div>
     </section>
 
-    <!-- ================= VIEW 5: CHUYÊN GIA & PHÒNG THAM VẤN HỌC ĐƯỜNG ================= -->
+    <!-- ================= VIEW 5: CHUYÊN GIA (CÓ THU PHÍ & ĐẶT LỊCH) ================= -->
     <section id="view-experts" style="display: none;">
       <div class="section-header">
         <div>
-          <h2 class="section-title">👨‍⚕️ Mạng Lưới Chuyên Gia & Tham Vấn Học Đường</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Khi bạn cần sự trợ giúp chuyên môn sâu rộng hơn từ các nhà tâm lý lâm sàng và cố vấn được cấp phép.</p>
+          <h2 class="section-title">👨‍⚕️ Đội Ngũ Chuyên Gia Tâm Lý & Tham Vấn Học Đường</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Tham vấn 1-1 chuyên sâu có thu phí cùng các Thạc sĩ, Tiến sĩ Tâm lý lâm sàng được cấp phép hành nghề.</p>
         </div>
         <div>
           <button class="btn-secondary" onclick="openPartnerRegisterModal()">
@@ -281,10 +337,11 @@
 
   </main>
 
-  <!-- ================= MODAL: KHẢO SÁT CHUYÊN SÂU ĐA BƯỚC ================= -->
+  <!-- ================= MODAL: KHẢO SÁT CHUYÊN SÂU ĐA BƯỚC (ONBOARDING GATE) ================= -->
   <div class="modal-overlay" id="surveyModal">
     <div class="modal-card">
-      <button class="modal-close-btn" onclick="closeSurveyModal()">✕</button>
+      <!-- Nút đóng có thể bị ẩn khi khảo sát là bắt buộc -->
+      <button class="modal-close-btn" id="surveyCloseBtn" onclick="closeSurveyModal()">✕</button>
 
       <div class="step-indicator">
         <div class="step-bar active" id="sbar-1"></div>
@@ -317,7 +374,7 @@
           </div>
         </div>
 
-        <button class="btn-primary" style="width: 100%;" onclick="nextSurveyStep(2)">Tiếp Tục ➜</button>
+        <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="nextSurveyStep(2)">Tiếp Tục ➜</button>
       </div>
 
       <!-- BƯỚC 2: NỖI NIỀM & VẤN ĐỀ ĐANG GẶP PHẢI -->
@@ -338,7 +395,7 @@
 
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(1)">Quay lại</button>
-          <button class="btn-primary" style="flex: 1;" onclick="nextSurveyStep(3)">Tiếp Tục ➜</button>
+          <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextSurveyStep(3)">Tiếp Tục ➜</button>
         </div>
       </div>
 
@@ -360,7 +417,7 @@
 
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(2)">Quay lại</button>
-          <button class="btn-primary" style="flex: 1;" onclick="nextSurveyStep(4)">Tiếp Tục ➜</button>
+          <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextSurveyStep(4)">Tiếp Tục ➜</button>
         </div>
       </div>
 
@@ -387,9 +444,103 @@
 
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(3)">Quay lại</button>
-          <button class="btn-primary" style="flex: 1;" onclick="completeSurvey()">Hoàn Thành & Khởi Chạy Thuật Toán 🚀</button>
+          <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="completeSurvey()">Hoàn Thành & Khởi Chạy Thuật Toán 🚀</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ĐẶT LỊCH THAM VẤN CHUYÊN GIA CÓ THU PHÍ ================= -->
+  <div class="modal-overlay" id="bookExpertModal">
+    <div class="modal-card" style="max-width: 540px;">
+      <button class="modal-close-btn" onclick="closeBookExpertModal()">✕</button>
+      <h2 style="color: var(--primary); margin-bottom: 0.25rem;">Đặt Lịch Tham Vấn Chuyên Gia</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;" id="bookingExpertDesc">Cùng chuyên gia đồng hành tháo gỡ rào cản tâm lý.</p>
+
+      <!-- Chọn gói dịch vụ -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Chọn thời lượng tham vấn:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+          <div class="option-btn selected" id="pkg60" onclick="selectPackage(60, this)">
+            <strong>Buổi Tiêu Chuẩn (60p)</strong>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Đánh giá & tháo gỡ chuyên sâu</div>
+          </div>
+          <div class="option-btn" id="pkg45" onclick="selectPackage(45, this)">
+            <strong>Buổi Khởi Đầu (45p)</strong>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Giải tỏa & định hướng nhanh</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chọn hình thức tham vấn -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Hình thức tham vấn:</label>
+        <div style="display: flex; gap: 0.6rem;">
+          <div class="option-btn selected" style="flex: 1;" onclick="selectCallFormat('Video Call Riêng Tư (Bảo mật 100%)', this)">
+            📹 Video Call Riêng Tư
+          </div>
+          <div class="option-btn" style="flex: 1;" onclick="selectCallFormat('Cuộc Gọi Thoại Ẩn Danh (Không lộ mặt)', this)">
+            📞 Gọi Thoại Ẩn Danh
+          </div>
+        </div>
+      </div>
+
+      <!-- Chọn khung giờ rảnh -->
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Khung giờ mong muốn:</label>
+        <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
+          <option>Thứ 4 tuần này: 19:00 - 20:00</option>
+          <option>Thứ 6 tuần này: 20:00 - 21:00</option>
+          <option>Thứ 7 tuần này: 09:30 - 10:30</option>
+          <option>Chủ Nhật: 14:00 - 15:00</option>
+        </select>
+      </div>
+
+      <!-- Checkbox Học sinh / Sinh viên -->
+      <div style="background: #e8f5ee; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;">
+        <input type="checkbox" id="chkStudentDiscount" style="width: 18px; height: 18px; accent-color: var(--primary);" onchange="updateBookingCost()">
+        <label for="chkStudentDiscount" style="font-size: 0.88rem; font-weight: 600; color: #2e7d5b; cursor: pointer;">
+          Áp dụng chính sách trợ giá cho Học sinh / Sinh viên
+        </label>
+      </div>
+
+      <!-- Bảng kê chi phí -->
+      <div class="checkout-box">
+        <div class="checkout-row">
+          <span>Phí tham vấn gốc:</span>
+          <span id="txtOriginalFee">350.000 VNĐ</span>
+        </div>
+        <div class="checkout-row" id="rowStudentDiscount" style="display: none; color: #2e7d5b;">
+          <span>Trợ giá quỹ sức khỏe học đường:</span>
+          <span id="txtDiscountFee">-160.000 VNĐ</span>
+        </div>
+        <div class="checkout-row total">
+          <span>Tổng số tiền thanh toán:</span>
+          <span id="txtFinalFee">350.000 VNĐ</span>
+        </div>
+      </div>
+
+      <!-- Mô phỏng thanh toán & Giữ chỗ -->
+      <div class="payment-qr-container">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
+          💳 Quét mã QR hoặc Chuyển khoản giữ chỗ:
+        </div>
+        <div class="qr-code-mock"></div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          <strong>MB Bank (Ngân hàng Quân Đội)</strong><br>
+          STK: <strong>190384729108</strong> · CTK: <strong>TAM GIAO SOULECHO</strong><br>
+          Cú pháp chuyển khoản: <span style="color: var(--primary); font-weight: 700;" id="txtBookingRef">TG-BOOKING</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.3rem;">Ghi chú ngắn gửi chuyên gia (tùy chọn):</label>
+        <textarea id="bookingNote" placeholder="Mô tả băn khoăn để chuyên gia chuẩn bị tài liệu trước..." style="width: 100%; height: 60px; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.88rem; resize: none;"></textarea>
+      </div>
+
+      <button class="btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem;" onclick="confirmExpertBooking()">
+        Xác Nhận Đặt Lịch & Giữ Chỗ ➜
+      </button>
     </div>
   </div>
 
@@ -470,32 +621,6 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: ĐẶT LỊCH THAM VẤN CHUYÊN GIA ================= -->
-  <div class="modal-overlay" id="bookExpertModal">
-    <div class="modal-card">
-      <button class="modal-close-btn" onclick="closeBookExpertModal()">✕</button>
-      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Đặt Lịch Tham Vấn Chuyên Sâu</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;" id="bookingExpertDesc">Cùng chuyên gia đồng hành tháo gỡ rào cản tâm lý.</p>
-
-      <div style="margin-bottom: 1rem;">
-        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.4rem;">Khung giờ mong muốn:</label>
-        <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
-          <option>Thứ 4 tuần này: 19:00 - 20:00</option>
-          <option>Thứ 6 tuần này: 20:00 - 21:00</option>
-          <option>Thứ 7 tuần này: 09:30 - 10:30</option>
-          <option>Chủ Nhật: 14:00 - 15:00</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom: 1.25rem;">
-        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.4rem;">Vấn đề bạn muốn chuyên gia chuẩn bị trước:</label>
-        <textarea id="bookingNote" placeholder="Mô tả ngắn tình trạng hoặc băn khoăn của bạn..." style="width: 100%; height: 90px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;"></textarea>
-      </div>
-
-      <button class="btn-primary" style="width: 100%;" onclick="confirmExpertBooking()">Xác Nhận Đặt Lịch Hẹn</button>
-    </div>
-  </div>
-
   <!-- ================= MODAL: QUY TẮC ỨNG XỬ (CODE OF CONDUCT) ================= -->
   <div class="modal-overlay" id="conductModal">
     <div class="modal-card">
@@ -510,7 +635,7 @@
         <li><strong>4. Báo cáo khi có nguy cơ:</strong> Nếu phát hiện bạn cùng phòng có dấu hiệu muốn tự hại, hãy bấm nút "Báo cáo" để điều phối viên và hotline can thiệp cứu trợ kịp thời.</li>
       </ul>
 
-      <button class="btn-primary" style="width: 100%;" onclick="closeConductModal()">Tôi Cam Kết Tuân Thủ</button>
+      <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="closeConductModal()">Tôi Cam Kết Tuân Thủ</button>
     </div>
   </div>
 
@@ -524,9 +649,9 @@
       <input type="text" id="partnerOrgName" placeholder="Tên đơn vị / Trường học..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
       <input type="text" id="partnerContactPerson" placeholder="Người đại diện liên hệ & Chức vụ..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
       <input type="email" id="partnerEmail" placeholder="Email công tác..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
-      <textarea id="partnerProposal" placeholder="Nội dung đề xuất hợp tác (VD: Hỗ trợ tham vấn miễn phí cho sinh viên trường, tổ chức workshop...)" style="width: 100%; height: 90px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></textarea>
+      <textarea id="partnerProposal" placeholder="Nội dung đề xuất hợp tác..." style="width: 100%; height: 90px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></textarea>
 
-      <button class="btn-primary" style="width: 100%;" onclick="submitPartnerRequest()">Gửi Hồ Sơ Đăng Ký Đối Tác</button>
+      <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="submitPartnerRequest()">Gửi Hồ Sơ Đăng Ký Đối Tác</button>
     </div>
   </div>
 
@@ -534,4 +659,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
