@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TÂM GIAO (SoulEcho) - Nền Tảng Kết Nối Thấu Cảm & Sức Khỏe Tinh Thần</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- TOP NAVIGATION -->
+  <header class="navbar">
+    <div class="brand" onclick="switchView('discover')">
+      <div class="brand-icon">🌿</div>
+      <div>
+        <div class="brand-name">TÂM GIAO</div>
+        <div class="brand-tagline">Trạm lắng nghe & kết nối thấu cảm</div>
+      </div>
+    </div>
+
+    <ul class="nav-tabs">
+      <li><button class="nav-tab-btn active" id="tab-discover" onclick="switchView('discover')">🔍 Khám Phá & Đề Xuất</button></li>
+      <li><button class="nav-tab-btn" id="tab-groups" onclick="switchView('groups')">👥 Nhóm Đồng Cảnh</button></li>
+      <li><button class="nav-tab-btn" id="tab-chat" onclick="switchView('chat')">💬 Trò Chuyện (1-1 / Nhóm)</button></li>
+      <li><button class="nav-tab-btn" id="tab-wellness" onclick="switchView('wellness')">🧘 Trạm Chữa Lành</button></li>
+      <li><button class="nav-tab-btn" id="tab-experts" onclick="switchView('experts')">👨‍⚕️ Chuyên Gia & Học Đường</button></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="sos-btn" onclick="openSOSModal()">
+        🆘 Cứu Trợ SOS 24/7
+      </button>
+
+      <div class="user-profile-badge" onclick="toggleAnonymousMode()" title="Bấm để bật/tắt chế độ Ẩn danh">
+        <div class="user-avatar-mini" id="navUserAvatar">🌱</div>
+        <div>
+          <div class="user-name-text" id="navUserName">Mầm Nhỏ #204</div>
+          <div style="font-size: 0.7rem; color: #2e7d5b;" id="navUserMode">Chế độ Ẩn danh (Bảo mật)</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="main-content">
+    <section class="hero-card" id="heroBanner">
+      <div class="hero-info">
+        <h1 id="heroTitle">Chào bạn, hôm nay tâm trạng của bạn thế nào?</h1>
+        <p id="heroSubtitle">Hệ thống của Tâm Giao không ghép đôi ngẫu nhiên. Chúng mình lắng nghe câu chuyện của bạn để tìm những người bạn cùng hoàn cảnh, cùng tần số và cùng vượt qua giông bão.</p>
+      </div>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="openSurveyModal()">
+          📝 Làm Khảo Sát Để Nhận Đề Xuất
+        </button>
+        <button class="btn-secondary" onclick="startQuickBreathing()">
+          🌬️ Thở Thư Giãn 1 Phút
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 1: KHÁM PHÁ & GỢI Ý 1-1 -->
+    <section id="view-discover">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">✨ Người có thể bạn muốn kết nối</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Được đề xuất tự động dựa trên mức độ tương đồng về hoàn cảnh, độ tuổi và nỗi niềm trong khảo sát.</p>
+        </div>
+        <div class="filter-pills">
+          <button class="pill-btn active" onclick="filterDiscover('all', this)">Tất cả</button>
+          <button class="pill-btn" onclick="filterDiscover('Áp lực học tập', this)">Áp lực học tập</button>
+          <button class="pill-btn" onclick="filterDiscover('Gia đình', this)">Gia đình</button>
+          <button class="pill-btn" onclick="filterDiscover('Tình cảm', this)">Tình cảm</button>
+          <button class="pill-btn" onclick="filterDiscover('Cô đơn', this)">Cô đơn</button>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="userRecommendationsGrid"></div>
+    </section>
+
+    <!-- VIEW 2: NHÓM GỢI Ý -->
+    <section id="view-groups" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">👥 Nhóm cộng đồng & Vòng tròn nhỏ 2–5 người</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Không gian nhóm ấm cúng, có quy tắc ứng xử và điều phối viên hỗ trợ bảo vệ an toàn tinh thần.</p>
+        </div>
+        <div class="filter-pills">
+          <button class="pill-btn active" onclick="filterGroups('all', this)">Tất cả nhóm</button>
+          <button class="pill-btn" onclick="filterGroups('micro', this)">Nhóm nhỏ 2–5 người</button>
+          <button class="pill-btn" onclick="filterGroups('community', this)">Cộng đồng mở</button>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="groupRecommendationsGrid"></div>
+    </section>
+
+    <!-- VIEW 3: PHÒNG CHAT & VOICE CALL -->
+    <section id="view-chat" style="display: none;">
+      <div class="chat-container">
+        <aside class="chat-sidebar">
+          <div class="sidebar-header">
+            <span>Hộp Thoại An Toàn</span>
+          </div>
+          <ul class="chat-room-list" id="chatRoomList"></ul>
+        </aside>
+
+        <div class="chat-main">
+          <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div class="user-avatar-mini" id="currentChatAvatar">🌱</div>
+              <div>
+                <strong id="currentChatName">Minh Anh (Mầm Nhỏ #142)</strong>
+                <div style="font-size: 0.75rem; color: #2e7d5b;" id="currentChatSub">Tương đồng 92% · Đang trực tuyến</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openVoiceCallModal()">
+                📞 Gọi Thoại Ẩn Danh
+              </button>
+              <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: #d63031;" onclick="reportUser()">
+                ⚠️ Báo Cáo
+              </button>
+            </div>
+          </div>
+
+          <div class="conduct-banner">
+            <span>🛡️ <strong>Quy tắc ứng xử:</strong> Lắng nghe chân thành, không phán xét, không quấy rối và không ép buộc thông tin cá nhân.</span>
+            <a href="#" style="color: inherit; text-decoration: underline;" onclick="openConductModal(event)">Xem quy ước</a>
+          </div>
+
+          <div class="chat-messages" id="chatMessagesContainer"></div>
+
+          <div class="icebreaker-bar">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Gợi ý mở lời:</span>
+            <span class="icebreaker-chip" onclick="sendIcebreaker('Chào bạn, hôm nay của bạn có điều gì làm bạn cảm thấy mệt mỏi nhất không?')">"Hôm nay của bạn thế nào?"</span>
+            <span class="icebreaker-chip" onclick="sendIcebreaker('Nếu có một điều ước ngay lúc này để lòng nhẹ hơn, bạn sẽ ước điều gì?')">"Điều ước lúc này..."</span>
+            <span class="icebreaker-chip" onclick="sendIcebreaker('Mình cũng đang gặp áp lực tương tự, bạn có muốn cùng chia sẻ không?')">"Mình cũng đang gặp áp lực này..."</span>
+          </div>
+
+          <div class="chat-input-bar">
+            <button class="btn-secondary" style="padding: 0.55rem 0.75rem; font-size: 1.1rem;" onclick="sendReaction('🤗 Cái ôm ấm áp')" title="Gửi cái ôm thấu cảm">🤗</button>
+            <button class="btn-secondary" style="padding: 0.55rem 0.75rem; font-size: 1.1rem;" onclick="sendReaction('❤️ Trái tim sẻ chia')" title="Thả tim ấm áp">❤️</button>
+            <button class="btn-secondary" style="padding: 0.55rem 0.75rem; font-size: 1.1rem;" onclick="sendReaction('✨ Vỗ vai động viên')" title="Vỗ vai khích lệ">✨</button>
+            <input type="text" id="chatInput" placeholder="Nhập tâm sự của bạn (luôn giữ tinh thần thấu cảm)..." onkeypress="handleChatEnter(event)">
+            <button class="btn-primary" onclick="sendMessage()">Gửi</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: TRẠM CHỮA LÀNH -->
+    <section id="view-wellness" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">🧘 Trạm Tự Chăm Sóc & Sơ Cứu Cảm Xúc</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Các công cụ khoa học giúp điều hòa thần kinh giao cảm, hạ nhịp tim và ngắt cơn hoảng loạn tức thì.</p>
+        </div>
+      </div>
+
+      <div class="wellness-grid">
+        <div class="wellness-card">
+          <h3>🌬️ Kỹ Thuật Thở 4-7-8</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Phương pháp kích hoạt hệ thần kinh phó giao cảm giúp hạ huyết áp và xoa dịu cơn căng thẳng trong 60 giây.</p>
+          <div class="breathing-box">
+            <div class="breathing-circle" id="breathingCircle">
+              <span id="breathingCount">Bắt đầu</span>
+            </div>
+            <div class="breathing-status" id="breathingStatus">Nhấn nút bên dưới để bắt đầu nhịp thở</div>
+          </div>
+          <button class="btn-primary" id="btnToggleBreath" onclick="toggleBreathingExercise()" style="margin-top: auto;">
+            Bắt Đầu Bài Tập Thở
+          </button>
+        </div>
+
+        <div class="wellness-card">
+          <h3>👣 Tiếp Đất 5-4-3-2-1 (Grounding)</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Kéo tâm trí bạn trở về với thực tại khi đang bị chìm trong cơn lo âu hoặc overthinking.</p>
+          <div id="groundingStepContent" style="background: #f8faf9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; min-height: 120px;">
+            <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.4rem;" id="groundingTitle">Bước 1: 5 Đồ vật bạn có thể NHÌN THẤY</div>
+            <p style="font-size: 0.88rem;" id="groundingDesc">Hãy đưa mắt nhìn xung quanh và gọi tên trong đầu 5 đồ vật bạn thấy ngay lúc này.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+            <button class="btn-secondary" onclick="prevGroundingStep()">Quay lại</button>
+            <button class="btn-primary" style="flex: 1;" onclick="nextGroundingStep()">Bước Tiếp Theo</button>
+          </div>
+        </div>
+
+        <div class="wellness-card">
+          <h3>🔥 Hộp Thư Xả Uất Ức (Burn Note)</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem;">Viết ra tất cả những bực bội, buồn đau hay nỗi giận dữ đang đè nặng rồi bấm nút để hóa giải.</p>
+          <textarea class="burn-textarea" id="burnInput" placeholder="Viết mọi điều bạn muốn trút bỏ ở đây..."></textarea>
+          <button class="btn-secondary" style="border-color: #ff7675; color: #d63031; margin-top: auto;" onclick="burnNote()">
+            🔥 Hóa Giải & Làm Biến Mất Nỗi Buồn
+          </button>
+        </div>
+
+        <div class="wellness-card" style="grid-column: 1 / -1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>📖 Sổ Tay Cảm Xúc Cá Nhân (Mood Journal)</h3>
+            <span style="font-size: 0.8rem; color: #2e7d5b; background: #e8f5ee; padding: 0.2rem 0.6rem; border-radius: 20px;">Lưu trữ bảo mật trên thiết bị</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+              <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Cảm xúc của bạn hôm nay:</label>
+              <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;" id="moodSelector">
+                <button class="btn-secondary" onclick="selectMood(1, this)">😭 Rất tệ</button>
+                <button class="btn-secondary" onclick="selectMood(2, this)">😔 Lo âu</button>
+                <button class="btn-secondary active" onclick="selectMood(3, this)">😐 Bình thường</button>
+                <button class="btn-secondary" onclick="selectMood(4, this)">😊 Ổn định</button>
+                <button class="btn-secondary" onclick="selectMood(5, this)">🥰 Rất tốt</button>
+              </div>
+
+              <input type="text" id="journalTitle" placeholder="Tiêu đề nhật ký..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+              <textarea id="journalContent" placeholder="Viết ra đôi dòng bạn muốn ghi lại cho chính mình..." style="width: 100%; height: 100px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem; resize: none;"></textarea>
+              <button class="btn-primary" onclick="saveJournalEntry()">Lưu Vào Sổ Tay</button>
+            </div>
+
+            <div>
+              <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Dòng thời gian cảm xúc của bạn:</label>
+              <div id="journalEntriesList" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: CHUYÊN GIA -->
+    <section id="view-experts" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">👨‍⚕️ Mạng Lưới Chuyên Gia & Tham Vấn Học Đường</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Khi bạn cần sự trợ giúp chuyên môn sâu rộng hơn từ các nhà tâm lý lâm sàng và cố vấn được cấp phép.</p>
+        </div>
+        <div>
+          <button class="btn-secondary" onclick="openPartnerRegisterModal()">
+            🏫 Dành Cho Trường Học / Đối Tác Đăng Ký
+          </button>
+        </div>
+      </div>
+      <div class="cards-grid" id="expertsGrid"></div>
+    </section>
+  </main>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="surveyModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeSurveyModal()">✕</button>
+      <div class="step-indicator">
+        <div class="step-bar active" id="sbar-1"></div>
+        <div class="step-bar" id="sbar-2"></div>
+        <div class="step-bar" id="sbar-3"></div>
+        <div class="step-bar" id="sbar-4"></div>
+      </div>
+
+      <div class="survey-step active" id="sstep-1">
+        <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 1/4: Bạn đang ở giai đoạn nào?</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Thông tin này giúp thuật toán ghép nối bạn với những người cùng góc nhìn thế hệ.</p>
+        <div style="margin: 1.25rem 0;">
+          <label style="font-weight: 600; font-size: 0.9rem;">Độ tuổi của bạn:</label>
+          <div class="option-group" id="optAge">
+            <div class="option-btn" onclick="selectSingleOpt(this, 'age')">15 - 18 tuổi</div>
+            <div class="option-btn selected" onclick="selectSingleOpt(this, 'age')">18 - 22 tuổi</div>
+            <div class="option-btn" onclick="selectSingleOpt(this, 'age')">23 - 27 tuổi</div>
+            <div class="option-btn" onclick="selectSingleOpt(this, 'age')">Trên 28 tuổi</div>
+          </div>
+
+          <label style="font-weight: 600; font-size: 0.9rem;">Hoàn cảnh hiện tại:</label>
+          <div class="option-group" id="optStage">
+            <div class="option-btn" onclick="selectSingleOpt(this, 'stage')">Học sinh THPT</div>
+            <div class="option-btn selected" onclick="selectSingleOpt(this, 'stage')">Sinh viên năm nhất / xa nhà</div>
+            <div class="option-btn" onclick="selectSingleOpt(this, 'stage')">Sinh viên năm cuối</div>
+            <div class="option-btn" onclick="selectSingleOpt(this, 'stage')">Người mới đi làm (1-3 năm)</div>
+            <div class="option-btn" onclick="selectSingleOpt(this, 'stage')">Đang chông chênh / Chuyển hướng</div>
+          </div>
+        </div>
+        <button class="btn-primary" style="width: 100%;" onclick="nextSurveyStep(2)">Tiếp Tục ➜</button>
+      </div>
+
+      <div class="survey-step" id="sstep-2">
+        <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 2/4: Bạn đang trăn trở về điều gì?</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Bạn có thể chọn một hoặc nhiều vấn đề bên dưới:</p>
+        <div class="option-group" id="optIssues" style="grid-template-columns: 1fr 1fr;">
+          <div class="option-btn selected" onclick="toggleMultiOpt(this)">🎓 Áp lực học tập / Thi cử</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">🏡 Mâu thuẫn gia đình / Cha mẹ</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">💔 Đổ vỡ tình cảm / Chia tay</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">🪞 Tự ti ngoại hình / Năng lực</div>
+          <div class="option-btn selected" onclick="toggleMultiOpt(this)">🌧️ Cô đơn / Khó hòa nhập</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">💼 Burnout công việc / Quá tải</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">🌀 Overthinking / Mất ngủ</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">🧭 Mất phương hướng tương lai</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" onclick="prevSurveyStep(1)">Quay lại</button>
+          <button class="btn-primary" style="flex: 1;" onclick="nextSurveyStep(3)">Tiếp Tục ➜</button>
+        </div>
+      </div>
+
+      <div class="survey-step" id="sstep-3">
+        <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 3/4: Bạn tìm kiếm điều gì tại đây?</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Để hệ thống ghép bạn với người có cùng kỳ vọng trò chuyện.</p>
+        <label style="font-weight: 600; font-size: 0.9rem; margin-top: 1rem; display: block;">Mục tiêu chính của bạn:</label>
+        <div class="option-group" id="optGoals" style="grid-template-columns: 1fr 1fr;">
+          <div class="option-btn selected" onclick="toggleMultiOpt(this)">👂 Tìm một người biết lắng nghe</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">📚 Tìm bạn cùng học / Cùng tiến</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">💡 Tìm người đi trước có kinh nghiệm</div>
+          <div class="option-btn" onclick="toggleMultiOpt(this)">🌱 Chia sẻ kinh nghiệm vượt qua</div>
+        </div>
+        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-top: 0.5rem;">Đôi dòng tâm sự ngắn của bạn:</label>
+        <textarea id="surveyStoryInput" placeholder="Ví dụ: Mình là sinh viên năm nhất đang cảm thấy rất bỡ ngỡ..." style="width: 100%; height: 75px; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 8px; margin: 0.5rem 0 1rem; font-size: 0.9rem;"></textarea>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" onclick="prevSurveyStep(2)">Quay lại</button>
+          <button class="btn-primary" style="flex: 1;" onclick="nextSurveyStep(4)">Tiếp Tục ➜</button>
+        </div>
+      </div>
+
+      <div class="survey-step" id="sstep-4">
+        <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 4/4: Thiết lập chế độ an toàn</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Bảo mật danh tính là quyền lợi hàng đầu của bạn.</p>
+        <label style="font-weight: 600; font-size: 0.9rem; margin-top: 1rem; display: block;">Hình thức kết nối bạn mong muốn:</label>
+        <div class="option-group" id="optFormat">
+          <div class="option-btn selected" onclick="selectSingleOpt(this, 'format')">Ghép đôi 1-1 riêng tư</div>
+          <div class="option-btn" onclick="selectSingleOpt(this, 'format')">Nhóm nhỏ 2–5 người</div>
+          <div class="option-btn" onclick="selectSingleOpt(this, 'format')">Cả hai hình thức</div>
+        </div>
+        <div style="background: #f8faf9; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <label style="font-weight: 600; font-size: 0.9rem;">Bí danh ẩn danh của bạn:</label>
+            <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" onclick="generateNewAlias()">Đổi bí danh khác 🎲</button>
+          </div>
+          <input type="text" id="aliasInput" value="Mầm Nhỏ #204" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 600; color: var(--primary);">
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-secondary" onclick="prevSurveyStep(3)">Quay lại</button>
+          <button class="btn-primary" style="flex: 1;" onclick="completeSurvey()">Hoàn Thành & Khởi Chạy Thuật Toán 🚀</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOS MODAL -->
+  <div class="modal-overlay" id="sosModal">
+    <div class="modal-card" style="border-top: 5px solid #ff4757;">
+      <button class="modal-close-btn" onclick="closeSOSModal()">✕</button>
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.25rem;">🆘</div>
+        <h2 style="color: #d63031;">Kênh Cứu Trợ Tinh Thần Khẩn Cấp 24/7</h2>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Nếu bạn hoặc ai đó đang trải qua cơn hoảng loạn, hãy liên hệ ngay những đường dây trợ giúp bên dưới.</p>
+      </div>
+
+      <div class="hotline-item">
+        <div>
+          <div style="font-weight: 700;">Đường Dây Nóng Ngày Mai</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Hỗ trợ người trầm cảm & khủng hoảng tinh thần</div>
+          <div class="hotline-number">096 306 1414</div>
+        </div>
+        <a href="tel:0963061414" class="btn-call-direct">📞 Gọi Ngay</a>
+      </div>
+
+      <div class="hotline-item">
+        <div>
+          <div style="font-weight: 700;">Tổng Đài Quốc Gia Bảo Vệ Trẻ Em & Thanh Thiếu Niên</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Tư vấn tâm lý, bảo vệ khẩn cấp 24/7 (Miễn phí 100%)</div>
+          <div class="hotline-number">111</div>
+        </div>
+        <a href="tel:111" class="btn-call-direct">📞 Gọi 111</a>
+      </div>
+
+      <div class="hotline-item">
+        <div>
+          <div style="font-weight: 700;">Viện Sức Khỏe Tâm Thần - BV Bạch Mai</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Cấp cứu tâm thần & mất ngủ nặng</div>
+          <div class="hotline-number">024 3869 3731</div>
+        </div>
+        <a href="tel:02438693731" class="btn-call-direct">📞 Gọi Ngay</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE CALL MODAL -->
+  <div class="modal-overlay" id="voiceCallModal">
+    <div class="modal-card" style="max-width: 420px; text-align: center;">
+      <button class="modal-close-btn" onclick="closeVoiceCallModal()">✕</button>
+      <div class="voice-call-overlay">
+        <div class="user-avatar-large" style="margin: 0 auto 1rem; width: 72px; height: 72px; font-size: 2rem;">🌱</div>
+        <h3 id="voicePartnerName">Minh Anh (Mầm Nhỏ #142)</h3>
+        <p style="font-size: 0.85rem; color: #2e7d5b; margin-top: 0.2rem;">Cuộc gọi thoại ẩn danh mã hóa</p>
+        <div class="voice-wave">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem;" id="voiceCallTimer">00:42</div>
+        <div style="display: flex; justify-content: center; gap: 1.5rem;">
+          <button class="btn-secondary" style="border-radius: 50%; width: 50px; height: 50px; padding: 0;" onclick="toggleMuteCall(this)" title="Bật/Tắt Micro">🎙️</button>
+          <button class="btn-primary" style="background: #ff4757; border-radius: 50%; width: 50px; height: 50px; padding: 0;" onclick="endVoiceCall()" title="Kết thúc cuộc gọi">📞</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOK EXPERT MODAL -->
+  <div class="modal-overlay" id="bookExpertModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeBookExpertModal()">✕</button>
+      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Đặt Lịch Tham Vấn Chuyên Sâu</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;" id="bookingExpertDesc"></p>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.4rem;">Khung giờ mong muốn:</label>
+        <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
+          <option>Thứ 4 tuần này: 19:00 - 20:00</option>
+          <option>Thứ 6 tuần này: 20:00 - 21:00</option>
+          <option>Thứ 7 tuần này: 09:30 - 10:30</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="width: 100%;" onclick="confirmExpertBooking()">Xác Nhận Đặt Lịch Hẹn</button>
+    </div>
+  </div>
+
+  <!-- CONDUCT MODAL -->
+  <div class="modal-overlay" id="conductModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeConductModal()">✕</button>
+      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">🛡️ Quy Tắc Ứng Xử An Toàn</h2>
+      <ul style="font-size: 0.9rem; line-height: 1.7; padding-left: 1.2rem; margin-bottom: 1.5rem; color: var(--text-main);">
+        <li><strong>1. Tôn trọng ranh giới:</strong> Không hỏi dò danh tính thật nếu chưa được sự đồng ý.</li>
+        <li><strong>2. Lắng nghe không phán xét:</strong> Không hạ thấp nỗi buồn của người khác.</li>
+        <li><strong>3. Không công kích & toxic:</strong> Cấm mọi hành vi bắt nạt, xúc phạm.</li>
+        <li><strong>4. Báo cáo khi có nguy cơ:</strong> Hỗ trợ bạn bè tiếp cận cứu trợ khẩn cấp.</li>
+      </ul>
+      <button class="btn-primary" style="width: 100%;" onclick="closeConductModal()">Tôi Cam Kết Tuân Thủ</button>
+    </div>
+  </div>
+
+  <!-- PARTNER MODAL -->
+  <div class="modal-overlay" id="partnerModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closePartnerModal()">✕</button>
+      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Hợp Tác Phòng Tham Vấn Học Đường</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Dành cho các Trường THPT, Đại học và Tổ chức sức khỏe tinh thần.</p>
+      <input type="text" id="partnerOrgName" placeholder="Tên trường học / đơn vị..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+      <input type="email" id="partnerEmail" placeholder="Email công tác..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;">
+      <button class="btn-primary" style="width: 100%;" onclick="submitPartnerRequest()">Gửi Đăng Ký Đối Tác</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
