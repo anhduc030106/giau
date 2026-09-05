@@ -5,19 +5,125 @@
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
-// Quản lý trạng thái người dùng & phiên đăng nhập
-let currentUser = JSON.parse(localStorage.getItem("tamgiao_auth_user") || "null") || {
-  id: null,
-  username: "",
-  displayName: "",
-  email: "",
-  isAnonymous: true,
-  alias: "Mầm Nhỏ",
-  avatar: "🌱",
-  isLoggedIn: false,
-  hasCompletedSurvey: false,
-  survey: null
-};
+// Quản lý phiên đăng nhập: Đọc từ localStorage (phiên đã lưu) hoặc sessionStorage (phiên tạm thời)
+function loadCurrentSession() {
+  try {
+    const local = localStorage.getItem("tamgiao_auth_user");
+    if (local) return JSON.parse(local);
+  } catch(e) {}
+
+  try {
+    const session = sessionStorage.getItem("tamgiao_auth_user");
+    if (session) return JSON.parse(session);
+  } catch(e) {}
+
+  return null;
+}
+
+function createGuestUser() {
+  return {
+    id: null,
+    username: "",
+    displayName: "",
+    email: "",
+    isAnonymous: true,
+    alias: "Mầm Nhỏ",
+    avatar: "🌱",
+    isLoggedIn: false,
+    hasCompletedSurvey: false,
+    survey: null
+  };
+}
+
+let currentUser = loadCurrentSession() || createGuestUser();
+
+// Cập nhật phiên đăng nhập theo tùy chọn Ghi nhớ / Lưu đăng nhập
+function persistUserSession(user, rememberMe = null) {
+  currentUser = user;
+  if (rememberMe === null) {
+    rememberMe = !!localStorage.getItem("tamgiao_auth_user");
+  }
+
+  if (rememberMe) {
+    localStorage.setItem("tamgiao_auth_user", JSON.stringify(user));
+    sessionStorage.removeItem("tamgiao_auth_user");
+  } else {
+    sessionStorage.setItem("tamgiao_auth_user", JSON.stringify(user));
+    localStorage.removeItem("tamgiao_auth_user");
+  }
+}
+
+// Danh sách tài khoản mẫu ban đầu (đồng bộ cho cả môi trường có hoặc không có FastAPI backend)
+const DEFAULT_SEED_ACCOUNTS = [
+  {
+    id: 101,
+    username: "mam_nho142",
+    password: "123456",
+    email: "mamnho@tamgiao.vn",
+    displayName: "Minh Anh",
+    alias: "Mầm Nhỏ #142",
+    avatar: "🌱",
+    hasCompletedSurvey: true,
+    survey: {
+      ageBracket: "18 - 22 tuổi",
+      lifeStage: "Sinh viên năm nhất",
+      primaryIssues: ["Áp lực học tập", "Cô đơn", "Tự ti năng lực"],
+      goals: ["Tìm người lắng nghe", "Tìm bạn cùng học tập"],
+      preferredFormat: "both",
+      storySummary: "Mình là sinh viên năm nhất xa nhà, môi trường đại học quá khác biệt làm mình thường xuyên tự ti và thấy bản thân tụt lại phía sau so với bạn bè."
+    }
+  },
+  {
+    id: 102,
+    username: "dom_dom89",
+    password: "123456",
+    email: "domdom@tamgiao.vn",
+    displayName: "Hoàng Long",
+    alias: "Đom Đóm #89",
+    avatar: "✨",
+    hasCompletedSurvey: true,
+    survey: {
+      ageBracket: "23 - 27 tuổi",
+      lifeStage: "Mới đi làm",
+      primaryIssues: ["Burnout công việc", "Áp lực gia đình", "Lo âu tương lai"],
+      goals: ["Chia sẻ kinh nghiệm", "Giải tỏa áp lực"],
+      preferredFormat: "one_to_one",
+      storySummary: "Đi làm công sở 1 năm nhưng ngày nào cũng thấy kiệt sức, bố mẹ ở quê luôn kỳ vọng mình phải thành đạt gửi tiền về."
+    }
+  }
+];
+
+function getRegisteredAccounts() {
+  try {
+    const raw = localStorage.getItem("tamgiao_registered_accounts");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+
+  localStorage.setItem("tamgiao_registered_accounts", JSON.stringify(DEFAULT_SEED_ACCOUNTS));
+  return DEFAULT_SEED_ACCOUNTS;
+}
+
+function saveRegisteredAccounts(accounts) {
+  localStorage.setItem("tamgiao_registered_accounts", JSON.stringify(accounts));
+}
+
+function showAuthError(elementId, message) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.innerText = message;
+    el.style.display = "block";
+  }
+}
+
+function hideAuthErrors() {
+  const regErr = document.getElementById("regErrorMsg");
+  const loginErr = document.getElementById("loginErrorMsg");
+  if (regErr) regErr.style.display = "none";
+  if (loginErr) loginErr.style.display = "none";
+}
 
 // Dữ liệu ứng viên mẫu để thuật toán ghép đôi
 let candidateUsers = [
@@ -245,18 +351,23 @@ function checkAuthAndSurveyGate() {
   const authGate = document.getElementById("authGate");
   
   if (!currentUser.isLoggedIn) {
+    // Chưa đăng nhập -> Hiện màn hình Đăng ký / Đăng nhập
     authGate.style.display = "flex";
   } else {
+    // Đã đăng nhập
     authGate.style.display = "none";
     updateNavUserBadge();
 
+    // Kiểm tra đã làm khảo sát chưa
     if (!currentUser.hasCompletedSurvey) {
+      // Chưa làm khảo sát -> Bắt buộc mở Survey Modal (không cho đóng)
       openSurveyModal(true);
     }
   }
 }
 
 function switchAuthTab(tab) {
+  hideAuthErrors();
   const tabReg = document.getElementById("tabAuthRegister");
   const tabLog = document.getElementById("tabAuthLogin");
   const formReg = document.getElementById("formRegister");
@@ -277,11 +388,34 @@ function switchAuthTab(tab) {
 
 async function handleRegister(e) {
   e.preventDefault();
+  hideAuthErrors();
+
   const username = document.getElementById("regUsername").value.trim();
   const email = document.getElementById("regEmail").value.trim();
   const password = document.getElementById("regPassword").value.trim();
   const displayName = document.getElementById("regDisplayName").value.trim() || username;
 
+  if (!username || !password) {
+    showAuthError("regErrorMsg", "❌ Vui lòng điền đầy đủ tên đăng nhập và mật khẩu!");
+    return;
+  }
+
+  // 1. Kiểm tra tài khoản trong danh sách cục bộ
+  const accounts = getRegisteredAccounts();
+  const existingLocal = accounts.find(a =>
+    a.username.toLowerCase() === username.toLowerCase() ||
+    a.email.toLowerCase() === email.toLowerCase()
+  );
+  if (existingLocal) {
+    showAuthError("regErrorMsg", `❌ Tên đăng nhập "${username}" đã tồn tại! Vui lòng chọn tên khác hoặc chuyển sang Đăng Nhập.`);
+    return;
+  }
+
+  let registeredUser = null;
+  let serverRejected = false;
+  let serverErrorMsg = "";
+
+  // 2. Thử gọi FastAPI backend nếu đang chạy
   try {
     const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
@@ -294,106 +428,210 @@ async function handleRegister(e) {
         is_anonymous: true
       })
     });
+
     if (res.ok) {
       const data = await res.json();
-      currentUser = {
+      registeredUser = {
         id: data.id,
         username: data.username,
         email: data.email,
         displayName: data.display_name,
         alias: data.anonymous_alias,
+        avatar: "🌱",
         isAnonymous: true,
         isLoggedIn: true,
         hasCompletedSurvey: false,
         survey: null
       };
     } else {
-      throw new Error("Local fallback");
+      serverRejected = true;
+      const errData = await res.json().catch(() => ({}));
+      serverErrorMsg = errData.detail || "Đăng ký không thành công. Tên đăng nhập hoặc email đã tồn tại!";
     }
   } catch (err) {
+    // Backend offline -> Tiếp tục với kho tài khoản cục bộ an toàn
+  }
+
+  if (serverRejected) {
+    showAuthError("regErrorMsg", `❌ ${serverErrorMsg}`);
+    return;
+  }
+
+  // Nếu backend offline, tạo tài khoản trong kho dữ liệu cục bộ
+  if (!registeredUser) {
     const randNum = Math.floor(Math.random() * 900) + 100;
-    currentUser = {
+    const newAccount = {
       id: Date.now(),
       username: username,
+      password: password,
       email: email,
       displayName: displayName,
       alias: `Mầm Nhỏ #${randNum}`,
+      avatar: "🌱",
       isAnonymous: true,
-      isLoggedIn: true,
       hasCompletedSurvey: false,
       survey: null
     };
+    accounts.push(newAccount);
+    saveRegisteredAccounts(accounts);
+
+    registeredUser = {
+      ...newAccount,
+      isLoggedIn: true
+    };
+  } else {
+    // Đã đăng ký trên server -> lưu vào local accounts để có thể đăng nhập offline
+    accounts.push({
+      id: registeredUser.id,
+      username: username,
+      password: password,
+      email: email,
+      displayName: displayName,
+      alias: registeredUser.alias,
+      avatar: "🌱",
+      isAnonymous: true,
+      hasCompletedSurvey: false,
+      survey: null
+    });
+    saveRegisteredAccounts(accounts);
   }
 
-  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  const rememberMe = window.confirm(
+    "Bạn có muốn lưu phiên đăng nhập trên thiết bị này không?\n\nChọn OK để lần sau không cần đăng nhập lại."
+  );
+
+  // Chỉ lưu phiên sau khi đăng ký thành công và người dùng đã xác nhận.
+  persistUserSession(registeredUser, rememberMe);
+
   document.getElementById("authGate").style.display = "none";
   updateNavUserBadge();
+
+  // Chuyển ngay sang bước làm khảo sát bắt buộc!
   openSurveyModal(true);
 }
 
 async function handleLogin(e) {
   e.preventDefault();
+  hideAuthErrors();
+
+  // Một lần đăng nhập thất bại không được kế thừa phiên cũ trong bộ nhớ.
+  currentUser = createGuestUser();
+  localStorage.removeItem("tamgiao_auth_user");
+  sessionStorage.removeItem("tamgiao_auth_user");
+
   const username = document.getElementById("loginUsername").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
+  const rememberMe = document.getElementById("loginRememberMe") ? document.getElementById("loginRememberMe").checked : true;
 
+  if (!username || !password) {
+    showAuthError("loginErrorMsg", "❌ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+    return;
+  }
+
+  let loggedInUser = null;
+  let serverAuthFailed = false;
+  let serverAuthErrorDetail = "";
+
+  // 1. Thử xác thực với Backend FastAPI nếu đang chạy
   try {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
     });
+
     if (res.ok) {
       const data = await res.json();
-      currentUser = {
+      loggedInUser = {
         id: data.id,
         username: data.username,
         email: data.email,
         displayName: data.display_name,
         alias: data.anonymous_alias,
+        avatar: "🌱",
         isAnonymous: data.is_anonymous,
         isLoggedIn: true,
         hasCompletedSurvey: data.has_completed_survey,
         survey: null
       };
     } else {
-      throw new Error("Local fallback");
+      // Backend phản hồi 401: Sai thông tin xác thực
+      serverAuthFailed = true;
+      const errData = await res.json().catch(() => ({}));
+      serverAuthErrorDetail = errData.detail || "Tên đăng nhập hoặc mật khẩu không chính xác!";
     }
   } catch (err) {
-    const saved = JSON.parse(localStorage.getItem("tamgiao_auth_user") || "null");
-    if (saved && saved.username === username) {
-      currentUser = saved;
-      currentUser.isLoggedIn = true;
-    } else {
-      const randNum = Math.floor(Math.random() * 900) + 100;
-      currentUser = {
-        id: Date.now(),
-        username: username,
-        email: `${username}@tamgiao.vn`,
-        displayName: username,
-        alias: `Mầm Nhỏ #${randNum}`,
-        isAnonymous: true,
-        isLoggedIn: true,
-        hasCompletedSurvey: false,
-        survey: null
-      };
-    }
+    // Backend offline / mạng lỗi -> kiểm tra tiếp ở kho dữ liệu tài khoản cục bộ
   }
 
-  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  // NẾU BACKEND ĐÃ TRẢ VỀ LỖI XÁC THỰC -> DỪNG NGAY LẬP TỨC, KHÔNG ĐƯỢC CHO VÀO!
+  if (serverAuthFailed) {
+    showAuthError("loginErrorMsg", `❌ ${serverAuthErrorDetail}`);
+    return;
+  }
+
+  // 2. Nếu Backend offline: Kiểm tra trong danh sách tài khoản đã đăng ký (Local Storage)
+  if (!loggedInUser) {
+    const accounts = getRegisteredAccounts();
+    const found = accounts.find(a => a.username.toLowerCase() === username.toLowerCase());
+
+    if (!found) {
+      showAuthError("loginErrorMsg", "❌ Tên đăng nhập không tồn tại! Vui lòng kiểm tra lại hoặc Đăng Ký.");
+      return;
+    }
+
+    if (found.password !== password) {
+      showAuthError("loginErrorMsg", "❌ Mật khẩu không chính xác! Vui lòng nhập lại.");
+      return;
+    }
+
+    // Đúng cả username và password
+    loggedInUser = {
+      id: found.id,
+      username: found.username,
+      email: found.email,
+      displayName: found.displayName,
+      alias: found.alias,
+      avatar: found.avatar || "🌱",
+      isAnonymous: found.isAnonymous !== undefined ? found.isAnonymous : true,
+      isLoggedIn: true,
+      hasCompletedSurvey: !!found.hasCompletedSurvey,
+      survey: found.survey || null
+    };
+  }
+
+  // 3. Đăng nhập thành công -> Lưu phiên theo tùy chọn Remember Me
+  persistUserSession(loggedInUser, rememberMe);
+
   document.getElementById("authGate").style.display = "none";
   updateNavUserBadge();
 
   if (!currentUser.hasCompletedSurvey) {
     openSurveyModal(true);
   } else {
-    alert(`Chào mừng bạn quay trở lại, ${currentUser.alias}!`);
+    // Nếu tài khoản đã có khảo sát -> tính lại điểm tương đồng theo hồ sơ
+    if (currentUser.survey && currentUser.survey.primaryIssues) {
+      recalculateMatchingScores(currentUser.survey.primaryIssues, currentUser.survey.lifeStage || "Sinh viên");
+    }
+    alert(`🌿 Đăng nhập thành công! Chào mừng bạn quay trở lại, ${currentUser.alias}!`);
   }
 }
 
 function handleLogout() {
   if (confirm("Bạn có chắc chắn muốn đăng xuất khỏi Tâm Giao không?")) {
-    currentUser.isLoggedIn = false;
-    localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+    currentUser = createGuestUser();
+    // Xóa phiên khỏi cả localStorage và sessionStorage
+    localStorage.removeItem("tamgiao_auth_user");
+    sessionStorage.removeItem("tamgiao_auth_user");
+
+    // Reset forms & ẩn các thông báo lỗi
+    const formLogin = document.getElementById("formLogin");
+    if (formLogin) formLogin.reset();
+    const formReg = document.getElementById("formRegister");
+    if (formReg) formReg.reset();
+    hideAuthErrors();
+
+    // Hiện lại Auth Gate
     document.getElementById("authGate").style.display = "flex";
   }
 }
@@ -410,7 +648,7 @@ function updateNavUserBadge() {
   }
 }
 
-// ================= MODAL KHẢO SÁT =================
+// ================= MODAL KHẢO SÁT (BẮT BUỘC HOẶC TÙY CHỈNH) =================
 let currentSurveyStep = 1;
 let isSurveyMandatory = false;
 
@@ -419,6 +657,7 @@ function openSurveyModal(mandatory = false) {
   currentSurveyStep = 1;
   updateSurveyStepUI();
 
+  // Nếu là bắt buộc -> Ẩn nút '✕' đóng modal
   const closeBtn = document.getElementById("surveyCloseBtn");
   if (closeBtn) {
     closeBtn.style.display = mandatory ? "none" : "block";
@@ -500,8 +739,21 @@ async function completeSurvey() {
     preferredFormat: "both"
   };
 
-  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  // Cập nhật khảo sát vào kho tài khoản cục bộ
+  try {
+    const accounts = getRegisteredAccounts();
+    const accIdx = accounts.findIndex(a => a.username.toLowerCase() === (currentUser.username || "").toLowerCase());
+    if (accIdx !== -1) {
+      accounts[accIdx].hasCompletedSurvey = true;
+      accounts[accIdx].survey = currentUser.survey;
+      accounts[accIdx].alias = currentUser.alias;
+      saveRegisteredAccounts(accounts);
+    }
+  } catch(e) {}
 
+  persistUserSession(currentUser);
+
+  // Cố gắng gửi lên backend FastAPI nếu đang chạy
   if (currentUser.id) {
     try {
       fetch(`${API_BASE_URL}/survey/${currentUser.id}`, {
@@ -527,6 +779,7 @@ async function completeSurvey() {
   isSurveyMandatory = false;
   document.getElementById("surveyModal").classList.remove("active");
 
+  // Chạy thuật toán đo lường độ tương đồng
   recalculateMatchingScores(currentUser.survey.primaryIssues, selectedStage);
 
   alert(`🎉 Chúc mừng ${alias}! Khảo sát hoàn tất. Bạn đã chính thức mở khóa toàn bộ hệ sinh thái kết nối và chữa lành.`);
@@ -561,7 +814,7 @@ function recalculateMatchingScores(userIssues, userStage) {
   renderGroupRecommendations(candidateGroups);
 }
 
-// ================= HIỂN THỊ ĐỀ XUẤT =================
+// ================= HIỂN THỊ ĐỀ XUẤT NGƯỜI DÙNG 1-1 =================
 function renderUserRecommendations(users) {
   const container = document.getElementById("userRecommendationsGrid");
   if (!container) return;
@@ -607,6 +860,7 @@ function renderUserRecommendations(users) {
   `).join("");
 }
 
+// ================= HIỂN THỊ ĐỀ XUẤT NHÓM =================
 function renderGroupRecommendations(groups) {
   const container = document.getElementById("groupRecommendationsGrid");
   if (!container) return;
@@ -651,6 +905,7 @@ function renderGroupRecommendations(groups) {
   `).join("");
 }
 
+// ================= BỘ LỌC ĐỀ XUẤT =================
 function filterDiscover(category, btn) {
   document.querySelectorAll("#view-discover .pill-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -678,6 +933,7 @@ function filterGroups(type, btn) {
   }
 }
 
+// ================= ĐIỀU HƯỚNG TABS/VIEWS =================
 function switchView(viewName) {
   const views = ["discover", "groups", "chat", "wellness", "experts"];
   views.forEach(v => {
@@ -1111,10 +1367,12 @@ function openBookExpertModal(expertId) {
 
   document.getElementById("bookingExpertDesc").innerText = `Tham vấn bảo mật cùng ${expert.name} (${expert.title})`;
   
+  // Reset lựa chọn
   document.getElementById("chkStudentDiscount").checked = false;
   document.getElementById("pkg60").classList.add("selected");
   document.getElementById("pkg45").classList.remove("selected");
 
+  // Sinh mã tham vấn duy nhất
   const randCode = `TG-${Math.floor(Math.random() * 90000) + 10000}`;
   document.getElementById("txtBookingRef").innerText = randCode;
 
@@ -1176,6 +1434,7 @@ async function confirmExpertBooking() {
   const finalFeeText = document.getElementById("txtFinalFee").innerText;
   const note = document.getElementById("bookingNote").value.trim();
 
+  // Thử gửi lên API backend
   try {
     fetch(`${API_BASE_URL}/experts/book`, {
       method: "POST",
@@ -1227,7 +1486,7 @@ function submitPartnerRequest() {
 function toggleAnonymousMode() {
   currentUser.isAnonymous = !currentUser.isAnonymous;
   updateNavUserBadge();
-  localStorage.setItem("tamgiao_auth_user", JSON.stringify(currentUser));
+  persistUserSession(currentUser);
 }
 
 function openSOSModal() {

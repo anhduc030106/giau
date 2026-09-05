@@ -105,7 +105,7 @@ def seed_database(db: Session):
         u = User(
             username=item["username"],
             email=item["email"],
-            hashed_password="hashed_placeholder_123",
+            hashed_password="123456",
             display_name=item["display_name"],
             anonymous_alias=item["anonymous_alias"],
             avatar_url=item["avatar_url"],

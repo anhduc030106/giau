@@ -11,7 +11,7 @@
 </head>
 <body>
 
-  <!-- AUTH GATE: MÀN HÌNH ĐĂNG KÝ / ĐĂNG NHẬP BẮT BUỘC -->
+  <!-- ================= AUTH GATE: MÀN HÌNH ĐĂNG KÝ / ĐĂNG NHẬP BẮT BUỘC ================= -->
   <div class="auth-overlay" id="authGate">
     <div class="auth-card">
       <div class="auth-header">
@@ -25,7 +25,9 @@
         <button class="auth-tab-btn" id="tabAuthLogin" onclick="switchAuthTab('login')">Đăng Nhập</button>
       </div>
 
+      <!-- Form Đăng Ký -->
       <form id="formRegister" onsubmit="handleRegister(event)">
+        <div id="regErrorMsg" style="display: none; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-bottom: 0.75rem;"></div>
         <div class="form-group">
           <label>Tên đăng nhập:</label>
           <input type="text" id="regUsername" placeholder="Ví dụ: mam_nho, lan_gio..." required>
@@ -50,7 +52,9 @@
         </p>
       </form>
 
+      <!-- Form Đăng Nhập -->
       <form id="formLogin" style="display: none;" onsubmit="handleLogin(event)">
+        <div id="loginErrorMsg" style="display: none; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-bottom: 0.75rem;"></div>
         <div class="form-group">
           <label>Tên đăng nhập:</label>
           <input type="text" id="loginUsername" placeholder="Nhập tên đăng nhập..." required>
@@ -59,14 +63,27 @@
           <label>Mật khẩu:</label>
           <input type="password" id="loginPassword" placeholder="••••••••" required>
         </div>
+        <!-- Tùy chọn Ghi nhớ đăng nhập -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin: 0.75rem 0 0.5rem 0;">
+          <input type="checkbox" id="loginRememberMe" checked style="width: 1rem; height: 1rem; accent-color: var(--primary); cursor: pointer;">
+          <label for="loginRememberMe" style="margin-bottom: 0; font-size: 0.85rem; color: var(--text-main); cursor: pointer; user-select: none;">
+            Ghi nhớ đăng nhập
+          </label>
+        </div>
         <button type="submit" class="btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; justify-content: center; margin-top: 0.5rem;">
           Đăng Nhập Vào Trạm Lắng Nghe ➜
         </button>
+        <div style="margin-top: 1rem; padding: 0.65rem 0.85rem; background: #f8fafc; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); border: 1px dashed #cbd5e1; line-height: 1.5;">
+          💡 <strong>Tài khoản có sẵn để trải nghiệm:</strong><br>
+          • TK: <code style="color: var(--primary); font-weight: 600;">mam_nho142</code> | MK: <code style="color: var(--primary); font-weight: 600;">123456</code><br>
+          • TK: <code style="color: var(--primary); font-weight: 600;">dom_dom89</code> | MK: <code style="color: var(--primary); font-weight: 600;">123456</code><br>
+          <em>(Hoặc bạn đăng ký tài khoản mới ở tab bên cạnh)</em>
+        </div>
       </form>
     </div>
   </div>
 
-  <!-- TOP NAVIGATION -->
+  <!-- ================= TOP NAVIGATION ================= -->
   <header class="navbar">
     <div class="brand" onclick="switchView('discover')">
       <div class="brand-icon">🌿</div>
@@ -85,10 +102,12 @@
     </ul>
 
     <div class="nav-actions">
+      <!-- Nút SOS Khẩn cấp -->
       <button class="sos-btn" onclick="openSOSModal()">
         🆘 Cứu Trợ SOS 24/7
       </button>
 
+      <!-- Hồ sơ cá nhân / Chế độ Ẩn danh -->
       <div class="user-profile-badge" onclick="toggleAnonymousMode()" title="Bấm để bật/tắt chế độ Ẩn danh">
         <div class="user-avatar-mini" id="navUserAvatar">🌱</div>
         <div>
@@ -97,14 +116,17 @@
         </div>
       </div>
 
+      <!-- Nút Đăng Xuất -->
       <button class="btn-logout" onclick="handleLogout()" title="Đăng xuất khỏi tài khoản">
         Đăng Xuất
       </button>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
+  <!-- ================= MAIN CONTAINER ================= -->
   <main class="main-content">
+
+    <!-- HERO BANNER & SURVIVAL CHECK-IN -->
     <section class="hero-card" id="heroBanner">
       <div class="hero-info">
         <h1 id="heroTitle">Chào bạn, hôm nay tâm trạng của bạn thế nào?</h1>
@@ -120,7 +142,7 @@
       </div>
     </section>
 
-    <!-- VIEW 1: KHÁM PHÁ & GỢI Ý 1-1 -->
+    <!-- ================= VIEW 1: KHÁM PHÁ & GỢI Ý 1-1 ================= -->
     <section id="view-discover">
       <div class="section-header">
         <div>
@@ -136,10 +158,12 @@
         </div>
       </div>
 
-      <div class="cards-grid" id="userRecommendationsGrid"></div>
+      <div class="cards-grid" id="userRecommendationsGrid">
+        <!-- Dynamic Cards Injected via JS -->
+      </div>
     </section>
 
-    <!-- VIEW 2: NHÓM GỢI Ý -->
+    <!-- ================= VIEW 2: NHÓM GỢI Ý (MICRO 2-5 NGƯỜI & CỘNG ĐỒNG) ================= -->
     <section id="view-groups" style="display: none;">
       <div class="section-header">
         <div>
@@ -153,19 +177,25 @@
         </div>
       </div>
 
-      <div class="cards-grid" id="groupRecommendationsGrid"></div>
+      <div class="cards-grid" id="groupRecommendationsGrid">
+        <!-- Dynamic Group Cards Injected via JS -->
+      </div>
     </section>
 
-    <!-- VIEW 3: PHÒNG CHAT & VOICE CALL -->
+    <!-- ================= VIEW 3: PHÒNG CHAT & VOICE CALL AN TOÀN ================= -->
     <section id="view-chat" style="display: none;">
       <div class="chat-container">
+        <!-- Sidebar Danh sách cuộc trò chuyện -->
         <aside class="chat-sidebar">
           <div class="sidebar-header">
             <span>Hộp Thoại An Toàn</span>
           </div>
-          <ul class="chat-room-list" id="chatRoomList"></ul>
+          <ul class="chat-room-list" id="chatRoomList">
+            <!-- Dynamic Room List -->
+          </ul>
         </aside>
 
+        <!-- Khung Chat Chính -->
         <div class="chat-main">
           <div class="chat-header">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -190,7 +220,9 @@
             <a href="#" style="color: inherit; text-decoration: underline;" onclick="openConductModal(event)">Xem quy ước</a>
           </div>
 
-          <div class="chat-messages" id="chatMessagesContainer"></div>
+          <div class="chat-messages" id="chatMessagesContainer">
+            <!-- Message Bubbles -->
+          </div>
 
           <div class="icebreaker-bar">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Gợi ý mở lời:</span>
@@ -210,7 +242,7 @@
       </div>
     </section>
 
-    <!-- VIEW 4: TRẠM CHỮA LÀNH -->
+    <!-- ================= VIEW 4: TRẠM CHỮA LÀNH & SƠ CỨU TINH THẦN ================= -->
     <section id="view-wellness" style="display: none;">
       <div class="section-header">
         <div>
@@ -220,42 +252,52 @@
       </div>
 
       <div class="wellness-grid">
+        <!-- Bài tập thở 4-7-8 -->
         <div class="wellness-card">
           <h3>🌬️ Kỹ Thuật Thở 4-7-8</h3>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Phương pháp kích hoạt hệ thần kinh phó giao cảm giúp hạ huyết áp và xoa dịu cơn căng thẳng trong 60 giây.</p>
+          
           <div class="breathing-box">
             <div class="breathing-circle" id="breathingCircle">
               <span id="breathingCount">Bắt đầu</span>
             </div>
             <div class="breathing-status" id="breathingStatus">Nhấn nút bên dưới để bắt đầu nhịp thở</div>
           </div>
+
           <button class="btn-primary" id="btnToggleBreath" onclick="toggleBreathingExercise()" style="margin-top: auto; justify-content: center;">
             Bắt Đầu Bài Tập Thở
           </button>
         </div>
 
+        <!-- Kỹ thuật tiếp đất 5-4-3-2-1 -->
         <div class="wellness-card">
           <h3>👣 Tiếp Đất 5-4-3-2-1 (Grounding)</h3>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">Kéo tâm trí bạn trở về với thực tại khi đang bị chìm trong cơn lo âu hoặc overthinking.</p>
+          
           <div id="groundingStepContent" style="background: #f8faf9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; min-height: 120px;">
             <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.4rem;" id="groundingTitle">Bước 1: 5 Đồ vật bạn có thể NHÌN THẤY</div>
             <p style="font-size: 0.88rem;" id="groundingDesc">Hãy đưa mắt nhìn xung quanh và gọi tên trong đầu 5 đồ vật bạn thấy ngay lúc này.</p>
           </div>
+
           <div style="display: flex; gap: 0.5rem; margin-top: auto;">
             <button class="btn-secondary" onclick="prevGroundingStep()">Quay lại</button>
             <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextGroundingStep()">Bước Tiếp Theo</button>
           </div>
         </div>
 
+        <!-- Hộp thư xả cảm xúc tự hủy (Burn Note) -->
         <div class="wellness-card">
           <h3>🔥 Hộp Thư Xả Uất Ức (Burn Note)</h3>
           <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem;">Viết ra tất cả những bực bội, buồn đau hay nỗi giận dữ đang đè nặng rồi bấm nút để hóa giải.</p>
+          
           <textarea class="burn-textarea" id="burnInput" placeholder="Viết mọi điều bạn muốn trút bỏ ở đây..."></textarea>
+          
           <button class="btn-secondary" style="border-color: #ff7675; color: #d63031; margin-top: auto; justify-content: center;" onclick="burnNote()">
             🔥 Hóa Giải & Làm Biến Mất Nỗi Buồn
           </button>
         </div>
 
+        <!-- Sổ tay cảm xúc (Journaling) -->
         <div class="wellness-card" style="grid-column: 1 / -1;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h3>📖 Sổ Tay Cảm Xúc Cá Nhân (Mood Journal)</h3>
@@ -273,21 +315,23 @@
                 <button class="btn-secondary" onclick="selectMood(5, this)">🥰 Rất tốt</button>
               </div>
 
-              <input type="text" id="journalTitle" placeholder="Tiêu đề nhật ký..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+              <input type="text" id="journalTitle" placeholder="Tiêu đề nhật ký (ví dụ: Một ngày thi thử căng thẳng...)" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
               <textarea id="journalContent" placeholder="Viết ra đôi dòng bạn muốn ghi lại cho chính mình..." style="width: 100%; height: 100px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem; resize: none;"></textarea>
               <button class="btn-primary" onclick="saveJournalEntry()">Lưu Vào Sổ Tay</button>
             </div>
 
             <div>
               <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Dòng thời gian cảm xúc của bạn:</label>
-              <div id="journalEntriesList" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem;"></div>
+              <div id="journalEntriesList" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem;">
+                <!-- Saved entries -->
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- VIEW 5: CHUYÊN GIA (CÓ THU PHÍ) -->
+    <!-- ================= VIEW 5: CHUYÊN GIA (CÓ THU PHÍ & ĐẶT LỊCH) ================= -->
     <section id="view-experts" style="display: none;">
       <div class="section-header">
         <div>
@@ -300,14 +344,20 @@
           </button>
         </div>
       </div>
-      <div class="cards-grid" id="expertsGrid"></div>
+
+      <div class="cards-grid" id="expertsGrid">
+        <!-- Dynamic Experts Injected via JS -->
+      </div>
     </section>
+
   </main>
 
-  <!-- MODALS -->
+  <!-- ================= MODAL: KHẢO SÁT CHUYÊN SÂU ĐA BƯỚC (ONBOARDING GATE) ================= -->
   <div class="modal-overlay" id="surveyModal">
     <div class="modal-card">
+      <!-- Nút đóng có thể bị ẩn khi khảo sát là bắt buộc -->
       <button class="modal-close-btn" id="surveyCloseBtn" onclick="closeSurveyModal()">✕</button>
+
       <div class="step-indicator">
         <div class="step-bar active" id="sbar-1"></div>
         <div class="step-bar" id="sbar-2"></div>
@@ -315,9 +365,11 @@
         <div class="step-bar" id="sbar-4"></div>
       </div>
 
+      <!-- BƯỚC 1: ĐỘ TUỔI & GIAI ĐOẠN CUỘC SỐNG -->
       <div class="survey-step active" id="sstep-1">
         <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 1/4: Bạn đang ở giai đoạn nào?</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Thông tin này giúp thuật toán ghép nối bạn với những người cùng góc nhìn thế hệ.</p>
+
         <div style="margin: 1.25rem 0;">
           <label style="font-weight: 600; font-size: 0.9rem;">Độ tuổi của bạn:</label>
           <div class="option-group" id="optAge">
@@ -336,12 +388,15 @@
             <div class="option-btn" onclick="selectSingleOpt(this, 'stage')">Đang chông chênh / Chuyển hướng</div>
           </div>
         </div>
+
         <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="nextSurveyStep(2)">Tiếp Tục ➜</button>
       </div>
 
+      <!-- BƯỚC 2: NỖI NIỀM & VẤN ĐỀ ĐANG GẶP PHẢI -->
       <div class="survey-step" id="sstep-2">
         <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 2/4: Bạn đang trăn trở về điều gì?</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Bạn có thể chọn một hoặc nhiều vấn đề bên dưới:</p>
+
         <div class="option-group" id="optIssues" style="grid-template-columns: 1fr 1fr;">
           <div class="option-btn selected" onclick="toggleMultiOpt(this)">🎓 Áp lực học tập / Thi cử</div>
           <div class="option-btn" onclick="toggleMultiOpt(this)">🏡 Mâu thuẫn gia đình / Cha mẹ</div>
@@ -352,15 +407,18 @@
           <div class="option-btn" onclick="toggleMultiOpt(this)">🌀 Overthinking / Mất ngủ</div>
           <div class="option-btn" onclick="toggleMultiOpt(this)">🧭 Mất phương hướng tương lai</div>
         </div>
+
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(1)">Quay lại</button>
           <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextSurveyStep(3)">Tiếp Tục ➜</button>
         </div>
       </div>
 
+      <!-- BƯỚC 3: CÂU CHUYỆN & MỤC TIÊU KẾT NỐI -->
       <div class="survey-step" id="sstep-3">
         <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 3/4: Bạn tìm kiếm điều gì tại đây?</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Để hệ thống ghép bạn với người có cùng kỳ vọng trò chuyện.</p>
+
         <label style="font-weight: 600; font-size: 0.9rem; margin-top: 1rem; display: block;">Mục tiêu chính của bạn:</label>
         <div class="option-group" id="optGoals" style="grid-template-columns: 1fr 1fr;">
           <div class="option-btn selected" onclick="toggleMultiOpt(this)">👂 Tìm một người biết lắng nghe</div>
@@ -368,30 +426,37 @@
           <div class="option-btn" onclick="toggleMultiOpt(this)">💡 Tìm người đi trước có kinh nghiệm</div>
           <div class="option-btn" onclick="toggleMultiOpt(this)">🌱 Chia sẻ kinh nghiệm vượt qua</div>
         </div>
-        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-top: 0.5rem;">Đôi dòng tâm sự ngắn của bạn:</label>
-        <textarea id="surveyStoryInput" placeholder="Ví dụ: Mình là sinh viên năm nhất đang cảm thấy rất bỡ ngỡ..." style="width: 100%; height: 75px; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 8px; margin: 0.5rem 0 1rem; font-size: 0.9rem;"></textarea>
+
+        <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-top: 0.5rem;">Đôi dòng tâm sự ngắn của bạn (tùy chọn):</label>
+        <textarea id="surveyStoryInput" placeholder="Ví dụ: Mình là sinh viên năm nhất đang cảm thấy rất bỡ ngỡ và áp lực trước kỳ thi sắp tới..." style="width: 100%; height: 75px; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 8px; margin: 0.5rem 0 1rem; font-size: 0.9rem;"></textarea>
+
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(2)">Quay lại</button>
           <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="nextSurveyStep(4)">Tiếp Tục ➜</button>
         </div>
       </div>
 
+      <!-- BƯỚC 4: HÌNH THỨC GHÉP ĐÔI & BÍ DANH ẨN DANH -->
       <div class="survey-step" id="sstep-4">
         <h2 style="margin-bottom: 0.5rem; color: var(--primary);">Bước 4/4: Thiết lập chế độ an toàn</h2>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Bảo mật danh tính là quyền lợi hàng đầu của bạn.</p>
+
         <label style="font-weight: 600; font-size: 0.9rem; margin-top: 1rem; display: block;">Hình thức kết nối bạn mong muốn:</label>
         <div class="option-group" id="optFormat">
           <div class="option-btn selected" onclick="selectSingleOpt(this, 'format')">Ghép đôi 1-1 riêng tư</div>
           <div class="option-btn" onclick="selectSingleOpt(this, 'format')">Nhóm nhỏ 2–5 người</div>
           <div class="option-btn" onclick="selectSingleOpt(this, 'format')">Cả hai hình thức</div>
         </div>
+
         <div style="background: #f8faf9; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
             <label style="font-weight: 600; font-size: 0.9rem;">Bí danh ẩn danh của bạn:</label>
             <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;" onclick="generateNewAlias()">Đổi bí danh khác 🎲</button>
           </div>
           <input type="text" id="aliasInput" value="Mầm Nhỏ #204" style="width: 100%; padding: 0.55rem; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 600; color: var(--primary);">
+          <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">Người khác sẽ chỉ nhìn thấy bí danh này, thông tin thật của bạn luôn được giữ kín.</small>
         </div>
+
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn-secondary" onclick="prevSurveyStep(3)">Quay lại</button>
           <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="completeSurvey()">Hoàn Thành & Khởi Chạy Thuật Toán 🚀</button>
@@ -400,13 +465,14 @@
     </div>
   </div>
 
-  <!-- MODAL: ĐẶT LỊCH THAM VẤN CHUYÊN GIA CÓ THU PHÍ -->
+  <!-- ================= MODAL: ĐẶT LỊCH THAM VẤN CHUYÊN GIA CÓ THU PHÍ ================= -->
   <div class="modal-overlay" id="bookExpertModal">
     <div class="modal-card" style="max-width: 540px;">
       <button class="modal-close-btn" onclick="closeBookExpertModal()">✕</button>
       <h2 style="color: var(--primary); margin-bottom: 0.25rem;">Đặt Lịch Tham Vấn Chuyên Gia</h2>
       <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;" id="bookingExpertDesc">Cùng chuyên gia đồng hành tháo gỡ rào cản tâm lý.</p>
 
+      <!-- Chọn gói dịch vụ -->
       <div style="margin-bottom: 1rem;">
         <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Chọn thời lượng tham vấn:</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
@@ -421,6 +487,7 @@
         </div>
       </div>
 
+      <!-- Chọn hình thức tham vấn -->
       <div style="margin-bottom: 1rem;">
         <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Hình thức tham vấn:</label>
         <div style="display: flex; gap: 0.6rem;">
@@ -433,6 +500,7 @@
         </div>
       </div>
 
+      <!-- Chọn khung giờ rảnh -->
       <div style="margin-bottom: 1rem;">
         <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Khung giờ mong muốn:</label>
         <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
@@ -443,6 +511,7 @@
         </select>
       </div>
 
+      <!-- Checkbox Học sinh / Sinh viên -->
       <div style="background: #e8f5ee; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem;">
         <input type="checkbox" id="chkStudentDiscount" style="width: 18px; height: 18px; accent-color: var(--primary);" onchange="updateBookingCost()">
         <label for="chkStudentDiscount" style="font-size: 0.88rem; font-weight: 600; color: #2e7d5b; cursor: pointer;">
@@ -450,6 +519,7 @@
         </label>
       </div>
 
+      <!-- Bảng kê chi phí -->
       <div class="checkout-box">
         <div class="checkout-row">
           <span>Phí tham vấn gốc:</span>
@@ -465,6 +535,7 @@
         </div>
       </div>
 
+      <!-- Mô phỏng thanh toán & Giữ chỗ -->
       <div class="payment-qr-container">
         <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
           💳 Quét mã QR hoặc Chuyển khoản giữ chỗ:
@@ -488,20 +559,21 @@
     </div>
   </div>
 
-  <!-- SOS MODAL -->
+  <!-- ================= MODAL: CỨU TRỢ KHẨN CẤP SOS 24/7 ================= -->
   <div class="modal-overlay" id="sosModal">
     <div class="modal-card" style="border-top: 5px solid #ff4757;">
       <button class="modal-close-btn" onclick="closeSOSModal()">✕</button>
+      
       <div style="text-align: center; margin-bottom: 1.5rem;">
         <div style="font-size: 2.5rem; margin-bottom: 0.25rem;">🆘</div>
         <h2 style="color: #d63031;">Kênh Cứu Trợ Tinh Thần Khẩn Cấp 24/7</h2>
-        <p style="color: var(--text-muted); font-size: 0.92rem;">Nếu bạn hoặc ai đó đang trải qua cơn hoảng loạn, hãy liên hệ ngay những đường dây trợ giúp miễn phí bên dưới.</p>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Nếu bạn hoặc ai đó đang trải qua cơn hoảng loạn, khủng hoảng tột độ hoặc có ý định tự hại, hãy liên hệ ngay những đường dây trợ giúp miễn phí bên dưới. Bạn không hề đơn độc.</p>
       </div>
 
       <div class="hotline-item">
         <div>
           <div style="font-weight: 700;">Đường Dây Nóng Ngày Mai</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">Hỗ trợ người trầm cảm & khủng hoảng tinh thần</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Hỗ trợ người trầm cảm & khủng hoảng tinh thần (TS. Đặng Hoàng Giang)</div>
           <div class="hotline-number">096 306 1414</div>
         </div>
         <a href="tel:0963061414" class="btn-call-direct">📞 Gọi Ngay</a>
@@ -510,7 +582,7 @@
       <div class="hotline-item">
         <div>
           <div style="font-weight: 700;">Tổng Đài Quốc Gia Bảo Vệ Trẻ Em & Thanh Thiếu Niên</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">Tư vấn tâm lý, bảo vệ khẩn cấp 24/7 (Miễn phí 100%)</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Tư vấn tâm lý, bảo vệ khẩn cấp 24/7 (Hoàn toàn miễn phí)</div>
           <div class="hotline-number">111</div>
         </div>
         <a href="tel:111" class="btn-call-direct">📞 Gọi 111</a>
@@ -519,22 +591,33 @@
       <div class="hotline-item">
         <div>
           <div style="font-weight: 700;">Viện Sức Khỏe Tâm Thần - BV Bạch Mai</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);">Cấp cứu tâm thần & mất ngủ nặng</div>
+          <div style="font-size: 0.82rem; color: var(--text-muted);">Can thiệp y tế chuyên sâu, mất ngủ nặng & cấp cứu tâm thần</div>
           <div class="hotline-number">024 3869 3731</div>
         </div>
         <a href="tel:02438693731" class="btn-call-direct">📞 Gọi Ngay</a>
       </div>
+
+      <div style="background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+        <strong style="color: #c53030; display: block; margin-bottom: 0.3rem;">3 Bước Sơ Cứu Tinh Thần Ngay Lúc Này:</strong>
+        <ol style="font-size: 0.85rem; color: #742a2a; padding-left: 1.2rem; line-height: 1.5;">
+          <li>Uống ngay một ngụm nước mát và hít sâu 3 nhịp thật chậm.</li>
+          <li>Tìm một không gian an toàn, ngồi xuống và đặt hai chân vững chãi lên mặt sàn.</li>
+          <li>Gọi cho một người thân bạn tin tưởng hoặc một số hotline bên trên. Hãy nhớ rằng cơn bão cảm xúc này rồi sẽ qua đi.</li>
+        </ol>
+      </div>
     </div>
   </div>
 
-  <!-- VOICE CALL MODAL -->
+  <!-- ================= MODAL: CUỘC GỌI THOẠI ẨN DANH (VOICE CALL) ================= -->
   <div class="modal-overlay" id="voiceCallModal">
     <div class="modal-card" style="max-width: 420px; text-align: center;">
       <button class="modal-close-btn" onclick="closeVoiceCallModal()">✕</button>
+
       <div class="voice-call-overlay">
         <div class="user-avatar-large" style="margin: 0 auto 1rem; width: 72px; height: 72px; font-size: 2rem;">🌱</div>
         <h3 id="voicePartnerName">Minh Anh (Mầm Nhỏ #142)</h3>
-        <p style="font-size: 0.85rem; color: #2e7d5b; margin-top: 0.2rem;">Cuộc gọi thoại ẩn danh mã hóa</p>
+        <p style="font-size: 0.85rem; color: #2e7d5b; margin-top: 0.2rem;">Cuộc gọi thoại ẩn danh mã hóa · 0% lộ số điện thoại</p>
+        
         <div class="voice-wave">
           <div class="wave-bar"></div>
           <div class="wave-bar"></div>
@@ -542,7 +625,9 @@
           <div class="wave-bar"></div>
           <div class="wave-bar"></div>
         </div>
+
         <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem;" id="voiceCallTimer">00:42</div>
+
         <div style="display: flex; justify-content: center; gap: 1.5rem;">
           <button class="btn-secondary" style="border-radius: 50%; width: 50px; height: 50px; padding: 0;" onclick="toggleMuteCall(this)" title="Bật/Tắt Micro">🎙️</button>
           <button class="btn-primary" style="background: #ff4757; border-radius: 50%; width: 50px; height: 50px; padding: 0;" onclick="endVoiceCall()" title="Kết thúc cuộc gọi">📞</button>
@@ -551,33 +636,41 @@
     </div>
   </div>
 
-  <!-- CONDUCT MODAL -->
+  <!-- ================= MODAL: QUY TẮC ỨNG XỬ (CODE OF CONDUCT) ================= -->
   <div class="modal-overlay" id="conductModal">
     <div class="modal-card">
       <button class="modal-close-btn" onclick="closeConductModal()">✕</button>
-      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">🛡️ Quy Tắc Ứng Xử An Toàn</h2>
+      <h2 style="color: var(--primary); margin-bottom: 0.5rem;">🛡️ Bộ Quy Tắc Ứng Xử An Toàn (Tâm Giao Code)</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Để bảo vệ mọi thành viên khỏi tổn thương và quấy rối, mọi tương tác trên nền tảng phải tuân thủ 4 nguyên tắc vàng:</p>
+
       <ul style="font-size: 0.9rem; line-height: 1.7; padding-left: 1.2rem; margin-bottom: 1.5rem; color: var(--text-main);">
-        <li><strong>1. Tôn trọng ranh giới:</strong> Không hỏi dò danh tính thật nếu chưa được sự đồng ý.</li>
-        <li><strong>2. Lắng nghe không phán xét:</strong> Không hạ thấp nỗi buồn của người khác.</li>
-        <li><strong>3. Không công kích & toxic:</strong> Cấm mọi hành vi bắt nạt, xúc phạm.</li>
-        <li><strong>4. Báo cáo khi có nguy cơ:</strong> Hỗ trợ bạn bè tiếp cận cứu trợ khẩn cấp.</li>
+        <li><strong>1. Tôn trọng ranh giới:</strong> Không hỏi dò danh tính thật, trường học, chỗ ở, tài khoản mạng xã hội hay số điện thoại nếu người đối diện chưa tự nguyện chia sẻ.</li>
+        <li><strong>2. Lắng nghe không phán xét:</strong> Mỗi người đều có nỗi đau riêng. Tuyệt đối không hạ thấp trải nghiệm của người khác bằng các câu như <em>"chuyện cỏn con thế cũng buồn"</em>, <em>"ngoài kia còn nhiều người khổ hơn"</em>.</li>
+        <li><strong>3. Không công kích & toxic:</strong> Hành vi quấy rối, ngôn từ thù ghét, quấy rối tình dục hoặc bắt nạt sẽ dẫn đến việc tài khoản bị khóa vĩnh viễn ngay lập tức.</li>
+        <li><strong>4. Báo cáo khi có nguy cơ:</strong> Nếu phát hiện bạn cùng phòng có dấu hiệu muốn tự hại, hãy bấm nút "Báo cáo" để điều phối viên và hotline can thiệp cứu trợ kịp thời.</li>
       </ul>
+
       <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="closeConductModal()">Tôi Cam Kết Tuân Thủ</button>
     </div>
   </div>
 
-  <!-- PARTNER MODAL -->
+  <!-- ================= MODAL: ĐĂNG KÝ ĐỐI TÁC HỌC ĐƯỜNG ================= -->
   <div class="modal-overlay" id="partnerModal">
     <div class="modal-card">
       <button class="modal-close-btn" onclick="closePartnerModal()">✕</button>
       <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Hợp Tác Phòng Tham Vấn Học Đường</h2>
-      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Dành cho các Trường THPT, Đại học và Tổ chức sức khỏe tinh thần.</p>
-      <input type="text" id="partnerOrgName" placeholder="Tên trường học / đơn vị..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
-      <input type="email" id="partnerEmail" placeholder="Email công tác..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;">
-      <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="submitPartnerRequest()">Gửi Đăng Ký Đối Tác</button>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Dành cho các Trường THPT, Đại học, Khoa Tâm lý và các Tổ chức phi lợi nhuận vì sức khỏe tinh thần muốn tích hợp mạng lưới hỗ trợ học sinh sinh viên.</p>
+
+      <input type="text" id="partnerOrgName" placeholder="Tên đơn vị / Trường học..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+      <input type="text" id="partnerContactPerson" placeholder="Người đại diện liên hệ & Chức vụ..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+      <input type="email" id="partnerEmail" placeholder="Email công tác..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 0.75rem; font-size: 0.9rem;">
+      <textarea id="partnerProposal" placeholder="Nội dung đề xuất hợp tác..." style="width: 100%; height: 90px; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></textarea>
+
+      <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="submitPartnerRequest()">Gửi Hồ Sơ Đăng Ký Đối Tác</button>
     </div>
   </div>
 
+  <!-- JAVASCRIPT LOGIC -->
   <script src="script.js"></script>
 </body>
 </html>
