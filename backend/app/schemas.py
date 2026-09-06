@@ -167,3 +167,28 @@ class AppointmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AppointmentSummary(BaseModel):
+    id: int
+    booking_code: str
+    expert_name: str
+    expert_title: str
+    selected_time: str
+    service_package: str
+    call_format: str
+    fee_amount: int
+    payment_status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AvailabilitySlot(BaseModel):
+    value: str
+    label: str
+    available: bool
+
+class ExpertAvailabilityResponse(BaseModel):
+    expert_id: int
+    expert_name: str
+    slots: List[AvailabilitySlot]

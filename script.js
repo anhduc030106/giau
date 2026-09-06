@@ -338,12 +338,14 @@ let currentActiveChatId = 1;
 // ================= KHỞI TẠO ỨNG DỤNG =================
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthAndSurveyGate();
+  switchView("home");
   renderUserRecommendations(candidateUsers);
   renderGroupRecommendations(candidateGroups);
   renderExperts(expertList);
   renderChatRoomList();
   renderChatMessages(currentActiveChatId);
   renderJournalHistory();
+  loadMyAppointments();
 });
 
 // ================= LUỒNG BẮT BUỘC: AUTH GATE & MANDATORY SURVEY =================
@@ -935,7 +937,7 @@ function filterGroups(type, btn) {
 
 // ================= ĐIỀU HƯỚNG TABS/VIEWS =================
 function switchView(viewName) {
-  const views = ["discover", "groups", "chat", "wellness", "experts"];
+  const views = ["home", "discover", "groups", "chat", "wellness", "experts", "appointments"];
   views.forEach(v => {
     const el = document.getElementById(`view-${v}`);
     const tab = document.getElementById(`tab-${v}`);
@@ -943,6 +945,7 @@ function switchView(viewName) {
     if (tab) tab.classList.toggle("active", v === viewName);
   });
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (viewName === "appointments") loadMyAppointments();
 }
 
 // ================= PHÒNG CHAT & TIN NHẮN =================
@@ -1357,7 +1360,7 @@ function renderExperts(experts) {
   `).join("");
 }
 
-function openBookExpertModal(expertId) {
+async function openBookExpertModal(expertId) {
   const expert = expertList.find(e => e.id === expertId);
   if (!expert) return;
 
@@ -1376,8 +1379,26 @@ function openBookExpertModal(expertId) {
   const randCode = `TG-${Math.floor(Math.random() * 90000) + 10000}`;
   document.getElementById("txtBookingRef").innerText = randCode;
 
+  await loadExpertAvailability(expert);
+
   updateBookingCost();
   document.getElementById("bookExpertModal").classList.add("active");
+}
+
+async function loadExpertAvailability(expert) {
+  const select = document.getElementById("bookingTimeSelect");
+  const hint = document.getElementById("availabilityHint");
+  let slots = [];
+  try {
+    const response = await fetch(`${API_BASE_URL}/experts/${expert.id}/availability`);
+    if (!response.ok) throw new Error("availability unavailable");
+    slots = (await response.json()).slots || [];
+  } catch (error) {
+    slots = ["Ngày gần nhất · 19:00 - 20:00", "Ngày tiếp theo · 20:00 - 21:00"].map(value => ({ value, label: value, available: true }));
+  }
+  select.innerHTML = slots.map(slot => `<option value="${slot.value}" ${slot.available ? "" : "disabled"}>${slot.label} · ${slot.available ? "Còn trống" : "Đã bận"}</option>`).join("");
+  hint.innerText = `${slots.filter(slot => slot.available).length} khung giờ còn trống · Khung đã đặt được giữ lại để bạn không chọn nhầm.`;
+  if (!slots.some(slot => slot.available)) hint.innerText = "Chuyên gia chưa còn khung giờ trống trong 14 ngày tới.";
 }
 
 function closeBookExpertModal() {
@@ -1434,9 +1455,9 @@ async function confirmExpertBooking() {
   const finalFeeText = document.getElementById("txtFinalFee").innerText;
   const note = document.getElementById("bookingNote").value.trim();
 
-  // Thử gửi lên API backend
+  let savedAppointment = null;
   try {
-    fetch(`${API_BASE_URL}/experts/book`, {
+    const response = await fetch(`${API_BASE_URL}/experts/book`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1449,7 +1470,23 @@ async function confirmExpertBooking() {
         user_note: note
       })
     });
-  } catch(e) {}
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "Không thể đặt khung giờ này.");
+    }
+    savedAppointment = await response.json();
+  } catch(e) {
+    if (e.message && !e.message.includes("Failed to fetch") && !e.message.includes("Không tìm thấy người dùng")) {
+      alert(`Không thể đặt lịch: ${e.message}`);
+      await loadExpertAvailability(currentBookingExpert);
+      return;
+    }
+    const localKey = "tamgiao_appointments";
+    const localAppointments = JSON.parse(localStorage.getItem(localKey) || "[]");
+    savedAppointment = { id: Date.now(), booking_code: bookingCode, expert_name: currentBookingExpert.name, expert_title: currentBookingExpert.title, selected_time: selectedTime, service_package: `Tham vấn ${bookingDurationMinutes} phút`, call_format: bookingCallFormat, fee_amount: Number(finalFeeText.replace(/[^0-9]/g, "")), payment_status: "Chờ thanh toán / Giữ chỗ", created_at: new Date().toISOString() };
+    localAppointments.unshift(savedAppointment);
+    localStorage.setItem(localKey, JSON.stringify(localAppointments));
+  }
 
   closeBookExpertModal();
 
@@ -1462,6 +1499,31 @@ async function confirmExpertBooking() {
     `• Mã đặt chỗ: ${bookingCode}\n\n` +
     `Vui lòng chuyển khoản giữ chỗ theo hướng dẫn với nội dung [${bookingCode}]. Link phòng tham vấn bảo mật sẽ được gửi qua thông báo trước giờ hẹn 30 phút.`
   );
+  loadMyAppointments();
+}
+
+async function loadMyAppointments() {
+  const userId = currentUser.id;
+  let appointments = [];
+  try {
+    if (!userId) throw new Error("guest");
+    const response = await fetch(`${API_BASE_URL}/experts/appointments/${userId}`);
+    if (!response.ok) throw new Error("appointments unavailable");
+    appointments = await response.json();
+  } catch (error) {
+    appointments = JSON.parse(localStorage.getItem("tamgiao_appointments") || "[]");
+  }
+  renderAppointmentList(appointments);
+}
+
+function renderAppointmentList(appointments) {
+  const container = document.getElementById("appointmentsList");
+  if (!container) return;
+  if (!appointments.length) {
+    container.innerHTML = `<div class="empty-state">Bạn chưa có lịch tham vấn nào. Hãy chọn một chuyên gia để bắt đầu.</div>`;
+    return;
+  }
+  container.innerHTML = appointments.map(item => `<article class="appointment-card"><div><span class="appointment-status">${item.payment_status || "Đã ghi nhận"}</span><h3>${item.expert_name}</h3><p>${item.expert_title || "Chuyên gia Tâm Giao"}</p></div><div class="appointment-details"><strong>${item.selected_time}</strong><span>${item.service_package} · ${item.call_format}</span><span>Mã đặt chỗ: <b>${item.booking_code}</b></span></div></article>`).join("");
 }
 
 function openPartnerRegisterModal() {

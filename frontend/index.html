@@ -94,11 +94,13 @@
     </div>
 
     <ul class="nav-tabs">
+      <li><button class="nav-tab-btn active" id="tab-home" onclick="switchView('home')">🏠 Trang chủ</button></li>
       <li><button class="nav-tab-btn active" id="tab-discover" onclick="switchView('discover')">🔍 Khám Phá & Đề Xuất</button></li>
       <li><button class="nav-tab-btn" id="tab-groups" onclick="switchView('groups')">👥 Nhóm Đồng Cảnh</button></li>
       <li><button class="nav-tab-btn" id="tab-chat" onclick="switchView('chat')">💬 Trò Chuyện (1-1 / Nhóm)</button></li>
       <li><button class="nav-tab-btn" id="tab-wellness" onclick="switchView('wellness')">🧘 Trạm Chữa Lành</button></li>
       <li><button class="nav-tab-btn" id="tab-experts" onclick="switchView('experts')">👨‍⚕️ Chuyên Gia (Có Thu Phí)</button></li>
+      <li><button class="nav-tab-btn" id="tab-appointments" onclick="switchView('appointments')">🗓️ Lịch của tôi</button></li>
     </ul>
 
     <div class="nav-actions">
@@ -125,6 +127,23 @@
 
   <!-- ================= MAIN CONTAINER ================= -->
   <main class="main-content">
+
+    <section id="view-home" class="home-intro">
+      <div class="home-intro-content">
+        <span class="home-eyebrow">TÂM GIAO · KHÔNG GIAN THẤU CẢM</span>
+        <h1>Một nơi để được lắng nghe, kết nối và chăm sóc tinh thần.</h1>
+        <p>Tâm Giao giúp bạn tìm người đồng cảm, tham gia những vòng tròn an toàn, luyện tập chăm sóc bản thân và đặt lịch cùng chuyên gia phù hợp.</p>
+        <div class="hero-buttons">
+          <button class="btn-primary" onclick="switchView('discover')">Bắt đầu khám phá</button>
+          <button class="btn-secondary" onclick="switchView('experts')">Tìm chuyên gia</button>
+        </div>
+      </div>
+      <div class="home-feature-list">
+        <div><strong>01</strong><span>Khám phá kết nối phù hợp với câu chuyện của bạn.</span></div>
+        <div><strong>02</strong><span>Trò chuyện trong không gian riêng tư, tôn trọng và không phán xét.</span></div>
+        <div><strong>03</strong><span>Theo dõi lịch tham vấn và chủ động chọn ngày còn trống.</span></div>
+      </div>
+    </section>
 
     <!-- HERO BANNER & SURVIVAL CHECK-IN -->
     <section class="hero-card" id="heroBanner">
@@ -350,6 +369,14 @@
       </div>
     </section>
 
+    <section id="view-appointments" style="display: none;">
+      <div class="section-header">
+        <div><h2 class="section-title">🗓️ Lịch tham vấn của tôi</h2><p style="color: var(--text-muted); font-size: 0.9rem;">Theo dõi các buổi đã đặt, trạng thái thanh toán và mã giữ chỗ.</p></div>
+        <button class="btn-secondary" onclick="loadMyAppointments()">↻ Làm mới</button>
+      </div>
+      <div id="appointmentsList" class="appointment-list"></div>
+    </section>
+
   </main>
 
   <!-- ================= MODAL: KHẢO SÁT CHUYÊN SÂU ĐA BƯỚC (ONBOARDING GATE) ================= -->
@@ -503,12 +530,8 @@
       <!-- Chọn khung giờ rảnh -->
       <div style="margin-bottom: 1rem;">
         <label style="font-weight: 600; font-size: 0.88rem; display: block; margin-bottom: 0.4rem;">Khung giờ mong muốn:</label>
-        <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
-          <option>Thứ 4 tuần này: 19:00 - 20:00</option>
-          <option>Thứ 6 tuần này: 20:00 - 21:00</option>
-          <option>Thứ 7 tuần này: 09:30 - 10:30</option>
-          <option>Chủ Nhật: 14:00 - 15:00</option>
-        </select>
+        <select id="bookingTimeSelect" style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;"></select>
+        <small id="availabilityHint" style="display: block; color: var(--text-muted); margin-top: 0.4rem;">Đang tải lịch trống...</small>
       </div>
 
       <!-- Checkbox Học sinh / Sinh viên -->

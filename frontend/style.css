@@ -179,6 +179,35 @@ body {
 
 /* ================= Main Container ================= */
 .main-content {
+  .home-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+    gap: 2rem;
+    align-items: end;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(120deg, #e8f5ee 0%, #fff9ef 100%);
+    border: 1px solid #d7eadc;
+  }
+  .home-eyebrow { color: var(--primary); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; }
+  .home-intro h1 { max-width: 720px; margin: 0.7rem 0 1rem; color: #1e4937; font-size: clamp(2rem, 4vw, 3.7rem); line-height: 1.08; }
+  .home-intro p { max-width: 640px; color: var(--text-muted); font-size: 1.02rem; }
+  .home-feature-list { display: grid; gap: 0.8rem; }
+  .home-feature-list div { display: flex; gap: 0.8rem; padding: 1rem; background: rgba(255,255,255,0.78); border: 1px solid rgba(46,125,91,0.14); border-radius: var(--radius-sm); }
+  .home-feature-list strong { color: var(--accent-warm); }
+  .home-feature-list span { font-size: 0.88rem; }
+  .appointment-list { display: grid; gap: 1rem; }
+  .appointment-card { display: flex; justify-content: space-between; gap: 1rem; padding: 1.2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); }
+  .appointment-card h3 { margin-top: 0.45rem; color: var(--text-main); }
+  .appointment-card p, .appointment-details span { color: var(--text-muted); font-size: 0.86rem; }
+  .appointment-details { display: grid; gap: 0.3rem; min-width: 260px; text-align: right; }
+  .appointment-details strong { color: var(--primary); }
+  .appointment-status { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px; color: #8a5a00; background: #fff4d6; font-size: 0.75rem; font-weight: 700; }
+  .empty-state { padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); }
+    .home-intro { grid-template-columns: 1fr; padding: 2rem; }
+    .appointment-card { flex-direction: column; }
+    .appointment-details { min-width: 0; text-align: left; }
   max-width: 1200px;
   margin: 1.5rem auto;
   padding: 0 1.5rem;
